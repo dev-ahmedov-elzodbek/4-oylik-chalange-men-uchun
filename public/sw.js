@@ -1,8 +1,8 @@
 const CACHE_NAME = 'ez-challenge-v1'
 
 const ASSETS = [
-  '/4-oylik-chalange-men-uchun/',
-  '/4-oylik-chalange-men-uchun/index.html',
+  '/',
+  '/index.html',
 ]
 
 self.addEventListener('install', e => {

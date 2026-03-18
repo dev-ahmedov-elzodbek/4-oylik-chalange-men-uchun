@@ -6,14 +6,14 @@
   <title>Elzodbek — 4 Oylik Challenge</title>
 
   <!-- PWA -->
-  <link rel="manifest" href="/4-oylik-chalange-men-uchun/manifest.json" />
+  <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f0c040" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="EZ Challenge" />
-  <link rel="icon" href="/4-oylik-chalange-men-uchun/icon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="/4-oylik-chalange-men-uchun/icon.svg" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/4-oylik-chalange-men-uchun/sw.js')
+        navigator.serviceWorker.register('/sw.js')
           .then(() => console.log('SW registered'))
           .catch(err => console.log('SW error:', err))
       })

@@ -2,15 +2,15 @@
   "name": "Elzodbek — 4 Oylik Challenge",
   "short_name": "EZ Challenge",
   "description": "4 oylik shaxsiy rivojlanish challenge ilovasi",
-  "start_url": "/4-oylik-chalange-men-uchun/",
-  "scope": "/4-oylik-chalange-men-uchun/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#080b14",
   "theme_color": "#f0c040",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/4-oylik-chalange-men-uchun/icon.svg",
+      "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
