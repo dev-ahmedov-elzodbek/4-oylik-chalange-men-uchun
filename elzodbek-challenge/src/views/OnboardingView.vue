@@ -1,7 +1,7 @@
 <template>
   <div class="onboarding">
     <div class="ob-bg"><div class="ob-orb"></div></div>
-
+ 
     <div class="ob-container">
       <!-- Progress -->
       <div class="ob-progress">
@@ -10,17 +10,17 @@
         </div>
         <div class="ob-step-label">{{ step }}/6 — {{ stepLabels[step-1] }}</div>
       </div>
-
+ 
       <!-- Step 1: Direction -->
       <div v-if="step === 1" class="ob-step-content">
         <h2>{{ t('onboarding.direction') }}</h2>
         <div class="chips-grid">
-          <button v-for="(label, key) in t('onboarding.directions')" :key="key"
+          <button v-for="(label, key) in tm('onboarding.directions')" :key="key"
             class="chip chip-lg" :class="{ active: form.direction === key }"
             @click="form.direction = key">{{ label }}</button>
         </div>
       </div>
-
+ 
       <!-- Step 2: Subjects -->
       <div v-if="step === 2" class="ob-step-content">
         <h2>{{ t('onboarding.subjects') }}</h2>
@@ -30,17 +30,17 @@
             @click="toggleArr(form.subjects, subj.key)">{{ subj.icon }} {{ subj.label }}</button>
         </div>
       </div>
-
+ 
       <!-- Step 3: Sports -->
       <div v-if="step === 3" class="ob-step-content">
         <h2>{{ t('onboarding.sports') }}</h2>
         <div class="chips-grid">
-          <button v-for="(label, key) in t('onboarding.sportsList')" :key="key"
+          <button v-for="(label, key) in tm('onboarding.sportsList')" :key="key"
             class="chip chip-lg" :class="{ active: form.sports.includes(key) }"
             @click="toggleArr(form.sports, key)">{{ label }}</button>
         </div>
       </div>
-
+ 
       <!-- Step 4: Schedule/Time -->
       <div v-if="step === 4" class="ob-step-content">
         <h2>{{ t('onboarding.busyTime') }}</h2>
@@ -75,11 +75,11 @@
           <button class="btn btn-outline btn-full" @click="addBlock">+ Yangi vaqt bloki</button>
         </div>
       </div>
-
+ 
       <!-- Step 5: Health — YANGILANGAN -->
       <div v-if="step === 5" class="ob-step-content">
         <h2>{{ t('onboarding.health') }}</h2>
-
+ 
         <!-- Jins -->
         <div class="form-group">
           <label class="label">Jins</label>
@@ -88,7 +88,7 @@
             <button class="chip chip-lg" style="flex:1" :class="{ active: form.gender === 'female' }" @click="form.gender = 'female'">👩 Ayol</button>
           </div>
         </div>
-
+ 
         <!-- Tug'ilgan sana -->
         <div class="form-group">
           <label class="label">Tug'ilgan sana</label>
@@ -104,7 +104,7 @@
             🎂 Yosh: <strong>{{ calculatedAge }} yosh</strong>
           </div>
         </div>
-
+ 
         <!-- Bo'y va Vazn -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div class="form-group">
@@ -116,7 +116,7 @@
             <input v-model.number="form.weight_kg" class="input" type="number" placeholder="70" step="0.1" min="30" max="300" />
           </div>
         </div>
-
+ 
         <!-- BMI ko'rsatgich -->
         <div v-if="bmi" class="bmi-card">
           <div class="bmi-row">
@@ -130,17 +130,17 @@
             </div>
           </div>
         </div>
-
+ 
         <!-- Faoliyat darajasi -->
         <div class="form-group">
           <label class="label">Faoliyat darajasi</label>
           <div class="chips-grid">
-            <button v-for="(label, key) in t('onboarding.activityLevels')" :key="key"
+            <button v-for="(label, key) in tm('onboarding.activityLevels')" :key="key"
               class="chip" :class="{ active: form.activity_level === key }"
               @click="form.activity_level = key">{{ label }}</button>
           </div>
         </div>
-
+ 
         <!-- Kaloriya tavsiyasi -->
         <div v-if="calorieEstimate" class="calorie-card">
           <div class="cal-title">🔥 Kunlik kaloriya tavsiyasi</div>
@@ -152,13 +152,13 @@
           </div>
         </div>
       </div>
-
+ 
       <!-- Step 6: Goal & Duration -->
       <div v-if="step === 6" class="ob-step-content">
         <h2>{{ t('onboarding.goal') }}</h2>
         <textarea v-model="form.goal" class="input" style="min-height:100px;resize:vertical"
           placeholder="Masalan: 4 oyda dasturchi bo'lish, ingliz tilini o'rganish..."></textarea>
-
+ 
         <div class="form-group" style="margin-top:20px">
           <label class="label">{{ t('onboarding.duration') }}</label>
           <div class="duration-options">
@@ -167,7 +167,7 @@
               @click="form.challenge_duration = d">{{ d }} {{ t('onboarding.days') }}</button>
           </div>
         </div>
-
+ 
         <!-- Xulosa -->
         <div class="ob-summary card" style="margin-top:20px">
           <div class="card-title">📋 Xulosa</div>
@@ -181,7 +181,7 @@
           </div>
         </div>
       </div>
-
+ 
       <!-- Navigation -->
       <div class="ob-nav">
         <button v-if="step > 1" class="btn btn-outline" @click="step--">{{ t('onboarding.back') }}</button>
@@ -195,7 +195,7 @@
     </div>
   </div>
 </template>
-
+ 
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -203,17 +203,17 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import { useNutritionStore } from '../stores/nutrition.js'
 import { supabase } from '../supabase.js'
-
-const { t } = useI18n()
+ 
+const { t, tm } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
 const nutrition = useNutritionStore()
-
+ 
 const step = ref(1)
 const saving = ref(false)
-
+ 
 const stepLabels = ['Yo\'nalish', 'O\'rganish', 'Sport', 'Vaqt', 'Sog\'liq', 'Maqsad']
-
+ 
 const form = ref({
   direction: '',
   subjects: [],
@@ -227,12 +227,12 @@ const form = ref({
   goal: '',
   challenge_duration: 90
 })
-
+ 
 // Tug'ilgan sana limiti
 const today = new Date()
 const maxBirthDate = `${today.getFullYear() - 10}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
 const minBirthDate = `${today.getFullYear() - 100}-01-01`
-
+ 
 const calculatedAge = computed(() => {
   if (!form.value.birth_date) return null
   const birth = new Date(form.value.birth_date)
@@ -241,23 +241,23 @@ const calculatedAge = computed(() => {
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
   return age > 0 ? age : null
 })
-
+ 
 const birthYear = computed(() => {
   if (!form.value.birth_date) return null
   return new Date(form.value.birth_date).getFullYear()
 })
-
+ 
 function updateAgeFromDate() {
   // avtomatik hisoblanadi calculatedAge orqali
 }
-
+ 
 const bmi = computed(() => {
   const h = form.value.height_cm
   const w = form.value.weight_kg
   if (!h || !w) return null
   return (w / ((h/100) ** 2)).toFixed(1)
 })
-
+ 
 const bmiStatus = computed(() => {
   const b = parseFloat(bmi.value)
   if (!b) return null
@@ -266,7 +266,7 @@ const bmiStatus = computed(() => {
   if (b < 30) return '🟡 Ortiqcha'
   return '🔴 Semizlik'
 })
-
+ 
 const bmiColor = computed(() => {
   const b = parseFloat(bmi.value)
   if (!b) return '#6b7280'
@@ -275,7 +275,7 @@ const bmiColor = computed(() => {
   if (b < 30) return '#f59e0b'
   return '#ef4444'
 })
-
+ 
 const calorieEstimate = computed(() => {
   if (!form.value.height_cm || !form.value.weight_kg || !birthYear.value) return null
   return nutrition.calcDailyCalories({
@@ -286,12 +286,12 @@ const calorieEstimate = computed(() => {
     activity_level: form.value.activity_level
   })
 })
-
+ 
 const macros = computed(() => {
   if (!calorieEstimate.value) return {}
   return nutrition.getMacroRecommendation(calorieEstimate.value, 'maintain')
 })
-
+ 
 const subjects = [
   { key: 'math', icon: '📐', label: 'Matematika' },
   { key: 'physics', icon: '⚡', label: 'Fizika' },
@@ -304,33 +304,33 @@ const subjects = [
   { key: 'economics', icon: '📈', label: 'Iqtisodiyot' },
   { key: 'geography', icon: '🗺️', label: 'Geografiya' },
 ]
-
+ 
 const dayNames = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
-
+ 
 const timeOptions = []
 for (let h = 5; h <= 23; h++) {
   for (let m of ['00', '30']) {
     timeOptions.push(`${String(h).padStart(2,'0')}:${m}`)
   }
 }
-
+ 
 function toggleArr(arr, val) {
   const i = arr.indexOf(val)
   if (i === -1) arr.push(val)
   else arr.splice(i, 1)
 }
-
+ 
 function addBlock() {
   form.value.timeBlocks.push({ title: '', days: [], start: '09:00', end: '11:00' })
 }
-
+ 
 async function finish() {
   saving.value = true
   try {
     const startDate = new Date()
     const endDate = new Date()
     endDate.setDate(endDate.getDate() + form.value.challenge_duration)
-
+ 
     await auth.updateProfile({
       onboarding_done: true,
       direction: form.value.direction,
@@ -346,15 +346,15 @@ async function finish() {
       weight_kg: form.value.weight_kg,
       activity_level: form.value.activity_level,
     })
-
+ 
     if (form.value.timeBlocks.length) {
       await supabase.from('time_blocks').insert(
         form.value.timeBlocks.filter(b => b.title).map(b => ({
-          user_id: auth.user?.id, ...b
+          user_id: auth.user.value?.id, ...b
         }))
       )
     }
-
+ 
     router.push('/today')
   } catch (e) {
     console.error(e)
@@ -363,7 +363,7 @@ async function finish() {
   }
 }
 </script>
-
+ 
 <style scoped>
 .onboarding { min-height: 100vh; padding: 24px 16px 40px; position: relative; overflow: hidden; }
 .ob-bg { position: fixed; inset: 0; pointer-events: none; }
@@ -379,7 +379,7 @@ async function finish() {
 .ob-hint { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; margin-top: -12px; }
 .chips-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip-lg { font-size: 14px; padding: 10px 16px; }
-
+ 
 /* Tug'ilgan sana */
 .age-display {
   margin-top: 8px;
@@ -389,7 +389,7 @@ async function finish() {
   font-size: 14px;
   color: var(--accent-light);
 }
-
+ 
 /* BMI card */
 .bmi-card {
   background: var(--surface2);
@@ -402,29 +402,30 @@ async function finish() {
 .bmi-val { font-family: var(--font-display); font-weight: 800; font-size: 28px; color: var(--accent-light); }
 .bmi-status { font-weight: 600; font-size: 16px; }
 .bmi-label { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
-
+ 
 /* Kaloriya */
 .calorie-card { background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.3); border-radius: var(--radius); padding: 16px; margin-top: 16px; text-align: center; }
 .cal-title { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
 .cal-value { font-family: var(--font-display); font-weight: 800; font-size: 36px; color: var(--accent-light); }
 .cal-value span { font-size: 16px; }
 .cal-macros { display: flex; justify-content: center; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--text-dim); }
-
+ 
 /* Duration */
 .duration-options { display: flex; gap: 8px; }
 .dur-btn { flex: 1; padding: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: var(--font-mono); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; }
 .dur-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
-
+ 
 /* Summary */
 .summary-items { display: flex; flex-direction: column; gap: 8px; }
 .sum-item { font-size: 14px; display: flex; gap: 8px; }
 .sum-item span { color: var(--text-dim); min-width: 90px; }
-
+ 
 .tbb-item { padding: 16px; }
 .tbb-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-
+ 
 .ob-nav { display: flex; justify-content: space-between; margin-top: 32px; gap: 12px; }
-
+ 
 .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
+ 
