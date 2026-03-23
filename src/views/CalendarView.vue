@@ -40,14 +40,13 @@
         <span class="sel-pct" :style="{ color: barColor(selectedDay) }">{{ tasks.getDayCompletion(dateStr(selectedDay)) }}%</span>
       </div>
       <div class="sel-tasks">
-        <div v-for="task in tasks.tasks" :key="task.id"
+        <div v-for="task in tasks.tasks.value" :key="task.id"
           class="sel-task"
           :class="{ done: tasks.isCompleted(task.id, dateStr(selectedDay)) }"
           @click="toggle(task.id)">
           <span class="sel-check">{{ tasks.isCompleted(task.id, dateStr(selectedDay)) ? '✓' : '○' }}</span>
           {{ task.icon }} {{ task.title }}
         </div>
-        <div v-if="!tasks.tasks?.length" class="empty-state">Vazifalar yo'q</div>
       </div>
     </div>
 
@@ -56,7 +55,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTasksStore } from '../stores/tasks.js'
 
@@ -104,13 +103,7 @@ async function selectDay(d) {
 }
 
 async function toggle(taskId) {
-  if (!selectedDay.value) return
-  const dStr = dateStr(selectedDay.value)
-  if (tasks.isCompleted(taskId, dStr)) {
-    await tasks.uncomplete(taskId, dStr)
-  } else {
-    await tasks.complete(taskId, dStr)
-  }
+  await tasks.toggleCompletion(taskId, dateStr(selectedDay.value))
 }
 
 onMounted(async () => {
@@ -120,91 +113,30 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page { padding: 16px; max-width: 600px; margin: 0 auto; }
-.page-header { margin-bottom: 16px; }
-.page-header h1 { font-family: var(--font-display); font-weight: 800; font-size: 22px; }
-
-/* Month nav */
-.month-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 12px; }
-.month-title { text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 17px; }
-.year-label { display: block; font-size: 12px; color: var(--text-dim); font-weight: 400; margin-top: 2px; }
-.nav-btn { background: none; border: none; font-size: 22px; color: var(--text-dim); cursor: pointer; padding: 4px 10px; border-radius: 8px; transition: background 0.2s; }
-.nav-btn:hover { background: var(--surface2); }
-
-/* Calendar card */
-.cal-card { padding: 14px 10px; }
-.cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 6px; }
-.wd { text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); padding: 4px 0; }
-
-/* Calendar grid - responsive */
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.cal-day {
-  aspect-ratio: 1;
-  border-radius: 8px;
-  padding: 4px 3px 3px;
-  cursor: pointer;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: background 0.15s;
-  min-height: 36px;
-}
-.cal-day:hover:not(.empty) { background: var(--surface2); }
-.cal-day.empty { cursor: default; }
-.cal-day.today { background: rgba(108,99,255,0.15); }
-.cal-day.selected { background: var(--accent); }
-.cal-day.selected .day-num { color: white; }
-.cal-day.today.selected { background: var(--accent); }
-
-.day-num {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-  line-height: 1;
-  margin-bottom: 3px;
-}
-.day-bar {
-  width: 100%;
-  height: 3px;
-  background: var(--surface2);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.day-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
-.day-star {
-  font-size: 9px;
-  color: #f59e0b;
-  position: absolute;
-  top: 2px;
-  right: 2px;
-}
-
-/* Selected day tasks */
-.sel-tasks { display: flex; flex-direction: column; gap: 6px; }
-.sel-task {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: var(--surface2);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 14px;
-  transition: opacity 0.2s;
-}
-.sel-task.done { opacity: 0.6; }
-.sel-check { font-size: 16px; flex-shrink: 0; width: 20px; }
-.sel-pct { margin-left: auto; font-family: var(--font-mono); font-size: 13px; }
-
-.empty-state { text-align: center; padding: 20px; color: var(--text-dim); font-size: 14px; }
-
-/* Small screen tweaks */
-@media (max-width: 380px) {
-  .cal-card { padding: 10px 6px; }
-  .day-num { font-size: 11px; }
-  .wd { font-size: 10px; }
-  .cal-day { min-height: 30px; }
-}
+.page { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
+.page-header { margin-bottom: 20px; }
+.page-header h1 { font-family: var(--font-display); font-weight: 800; font-size: 24px; }
+.month-nav { display: flex; align-items: center; justify-content: space-between; }
+.nav-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: 10px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.nav-btn:hover { background: var(--accent); color: white; }
+.month-title { display: flex; flex-direction: column; align-items: center; font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+.year-label { font-size: 12px; color: var(--text-dim); font-family: var(--font-mono); font-weight: 400; }
+.cal-card { padding: 16px; }
+.cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; }
+.wd { text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-day { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all 0.2s; background: var(--surface2); border: 1px solid transparent; min-height: 44px; }
+.cal-day.empty { background: transparent; cursor: default; }
+.cal-day:hover:not(.empty) { border-color: var(--border2); }
+.cal-day.today { border-color: var(--accent) !important; background: rgba(108,99,255,0.1); }
+.cal-day.selected { border-color: var(--accent2) !important; background: rgba(0,212,170,0.1); }
+.day-num { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.day-bar { position: absolute; bottom: 4px; left: 4px; right: 4px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+.day-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+.day-star { position: absolute; top: 2px; right: 4px; font-size: 9px; color: var(--warning); }
+.sel-pct { margin-left: auto; font-family: var(--font-mono); font-weight: 700; }
+.sel-tasks { display: flex; flex-direction: column; gap: 4px; }
+.sel-task { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface2); border-radius: 8px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+.sel-task.done { opacity: 0.5; text-decoration: line-through; }
+.sel-check { font-family: var(--font-mono); color: var(--accent2); width: 16px; }
 </style>

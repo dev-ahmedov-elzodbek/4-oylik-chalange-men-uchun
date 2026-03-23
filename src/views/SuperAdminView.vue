@@ -27,20 +27,8 @@
       </button>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner-lg"></div>
-      <p>Foydalanuvchilar yuklanmoqda...</p>
-    </div>
-
-    <!-- Error -->
-    <div v-if="error" class="error-card">
-      ⚠️ {{ error }}
-      <button class="btn btn-outline btn-sm" style="margin-top:8px" @click="loadData">Qayta yuklash</button>
-    </div>
-
     <!-- USERS TAB -->
-    <div v-if="activeTab === 'users' && !loading">
+    <div v-if="activeTab === 'users'">
       <div class="card">
         <div class="card-title-row">
           <div class="card-title">👥 Barcha foydalanuvchilar ({{ users.length }})</div>
@@ -66,13 +54,13 @@
               </select>
             </div>
           </div>
-          <div v-if="!filteredUsers.length && !loading" class="empty-state">Foydalanuvchi topilmadi</div>
+          <div v-if="!filteredUsers.length" class="empty-state">Natija topilmadi</div>
         </div>
       </div>
     </div>
 
     <!-- ADMINS TAB -->
-    <div v-if="activeTab === 'admins' && !loading">
+    <div v-if="activeTab === 'admins'">
       <div class="card">
         <div class="card-title">🛡️ Adminlar ({{ adminUsers.length }})</div>
         <div class="users-list">
@@ -115,7 +103,7 @@
     </div>
 
     <!-- STATS TAB -->
-    <div v-if="activeTab === 'stats' && !loading">
+    <div v-if="activeTab === 'stats'">
       <div class="card">
         <div class="card-title">📊 Yo'nalishlar bo'yicha</div>
         <div class="dir-bars">
@@ -161,8 +149,6 @@ const activeTab = ref('users')
 const users = ref([])
 const allTemplates = ref([])
 const search = ref('')
-const loading = ref(false)
-const error = ref('')
 
 const tabs = [
   { id: 'users', icon: '👥', label: 'Foydalanuvchilar' },
@@ -211,8 +197,8 @@ async function changeRole(userId, newRole) {
   if (userId === auth.user?.id && newRole !== 'superadmin') {
     if (!confirm("O'z rolingizni o'zgartirmoqchimisiz?")) return
   }
-  const { error: err } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId)
-  if (!err) { const u = users.value.find(u => u.id === userId); if (u) u.role = newRole }
+  const { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId)
+  if (!error) { const u = users.value.find(u => u.id === userId); if (u) u.role = newRole }
 }
 
 async function deleteTemplate(id) {
@@ -226,39 +212,12 @@ async function goLogout() {
   router.push('/superadmin-login')
 }
 
-async function loadData() {
-  loading.value = true
-  error.value = ''
-  try {
-    // Barcha profillarni olish - RLS bypass uchun to'g'ridan-to'g'ri query
-    const { data: u, error: uErr } = await supabase
-      .from('profiles')
-      .select('id, email, full_name, role, direction, onboarding_done, created_at')
-      .order('created_at', { ascending: false })
-
-    if (uErr) {
-      console.error('Profiles error:', uErr)
-      error.value = `Foydalanuvchilarni yuklashda xato: ${uErr.message}`
-    } else {
-      users.value = u || []
-    }
-
-    const { data: t, error: tErr } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('is_template', true)
-      .order('created_at', { ascending: false })
-
-    if (!tErr) allTemplates.value = t || []
-  } catch (e) {
-    error.value = 'Kutilmagan xato yuz berdi'
-    console.error(e)
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(loadData)
+onMounted(async () => {
+  const { data: u } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
+  users.value = u || []
+  const { data: t } = await supabase.from('tasks').select('*').eq('is_template', true).order('created_at', { ascending: false })
+  allTemplates.value = t || []
+})
 </script>
 
 <style scoped>
@@ -267,56 +226,45 @@ onMounted(loadData)
 .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .page-header h1 { font-family: var(--font-display); font-weight: 800; font-size: 24px; }
 .header-sub { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
-
-.stats-overview { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+.stats-overview { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
 @media(min-width:500px){ .stats-overview { grid-template-columns: repeat(4, 1fr); } }
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
-.sc-icon { font-size: 20px; margin-bottom: 4px; }
-.sc-val { font-family: var(--font-display); font-weight: 800; font-size: 22px; }
-.sc-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
-
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
+.sc-icon { font-size: 22px; margin-bottom: 6px; }
+.sc-val { font-family: var(--font-display); font-weight: 800; font-size: 26px; }
+.sc-label { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
 .admin-tabs { display: flex; gap: 6px; margin-bottom: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px; }
-.admin-tab { flex: 1; padding: 8px 4px; background: none; border: none; color: var(--text-dim); font-family: var(--font-body); font-size: 12px; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+.admin-tab { flex: 1; padding: 10px; background: none; border: none; color: var(--text-dim); font-family: var(--font-body); font-size: 13px; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
 .admin-tab.active { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; font-weight: 700; }
-
-.loading-state { text-align: center; padding: 40px 20px; color: var(--text-dim); }
-.spinner-lg { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.error-card { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px; display: flex; flex-direction: column; align-items: flex-start; }
-
 .card-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
 .card-title-row .card-title { margin-bottom: 0; }
-.search-input { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface2); color: var(--text); font-size: 13px; width: 100%; max-width: 180px; }
-
+.search-input { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface2); color: var(--text); font-size: 13px; width: 180px; }
 .users-list { display: flex; flex-direction: column; gap: 8px; }
-.user-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--surface2); border-radius: var(--radius-sm); flex-wrap: wrap; }
-.user-avatar { width: 38px; height: 38px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.user-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface2); border-radius: var(--radius-sm); }
+.user-avatar { width: 40px; height: 40px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
 .avatar-admin { background: linear-gradient(135deg, #6c63ff, #00d4aa); }
 .avatar-super { background: linear-gradient(135deg, #f59e0b, #ef4444); }
 .user-info { flex: 1; min-width: 0; }
-.user-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-email { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+.user-name { font-weight: 600; font-size: 14px; }
+.user-email { font-size: 12px; color: var(--text-dim); }
+.user-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
 .user-dir { font-size: 11px; color: var(--text-dim); }
-.user-date { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
+.user-date { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
 .user-actions { flex-shrink: 0; }
-.select-sm { width: 100px; padding: 5px 6px; font-size: 12px; }
-
+.select-sm { width: 110px; padding: 6px 8px; font-size: 12px; }
 .template-list { display: flex; flex-direction: column; gap: 8px; }
-.template-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface2); border-radius: var(--radius-sm); }
-.task-icon { font-size: 18px; flex-shrink: 0; }
-.template-info { flex: 1; min-width: 0; }
+.template-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--surface2); border-radius: var(--radius-sm); }
+.task-icon { font-size: 20px; flex-shrink: 0; }
+.template-info { flex: 1; }
 .template-title { font-size: 14px; margin-bottom: 4px; }
-.template-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.template-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .task-pts { font-family: var(--font-mono); font-size: 12px; color: var(--accent-light); }
 .task-creator { font-size: 11px; color: var(--text-muted); }
-
 .dir-bars { display: flex; flex-direction: column; gap: 10px; }
-.dir-row { display: flex; align-items: center; gap: 8px; }
-.dir-label { font-size: 12px; width: 100px; flex-shrink: 0; }
+.dir-row { display: flex; align-items: center; gap: 10px; }
+.dir-label { font-size: 12px; width: 120px; flex-shrink: 0; }
 .dir-bar-wrap { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
 .dir-bar { height: 100%; background: linear-gradient(135deg, #f59e0b, #ef4444); border-radius: 4px; transition: width 0.5s; }
-.dir-count { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); width: 24px; text-align: right; }
+.dir-count { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); width: 24px; }
 .badge-warning { background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
 .empty-state { text-align: center; padding: 24px; color: var(--text-dim); font-size: 14px; }
 </style>
