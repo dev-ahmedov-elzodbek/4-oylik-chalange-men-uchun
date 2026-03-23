@@ -4,7 +4,7 @@
       <span class="nav-icon">{{ item.icon }}</span>
       <span class="nav-label">{{ t(item.label) }}</span>
     </router-link>
-    <router-link v-if="auth.isAdmin.value" to="/admin" class="nav-item">
+    <router-link v-if="auth.isAdmin" to="/admin" class="nav-item">
       <span class="nav-icon">👑</span>
       <span class="nav-label">Admin</span>
     </router-link>
@@ -64,5 +64,5 @@ const navItems = [
 }
 
 .nav-icon { font-size: 20px; transition: transform 0.2s; }
-.nav-label { font-size: 10px; font-weight: 500; }
+.nav-label { font-size: 11px; font-weight: 500; text-transform: none; }
 </style>

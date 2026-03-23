@@ -350,7 +350,7 @@ async function finish() {
     if (form.value.timeBlocks.length) {
       await supabase.from('time_blocks').insert(
         form.value.timeBlocks.filter(b => b.title).map(b => ({
-          user_id: auth.user.value?.id, ...b
+          user_id: auth.user?.id, ...b
         }))
       )
     }

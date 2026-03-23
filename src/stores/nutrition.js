@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { supabase } from '../supabase.js'
 import { useAuthStore } from './auth.js'
 
@@ -7,7 +7,6 @@ export const useNutritionStore = defineStore('nutrition', () => {
   const logs = ref([])
   const loading = ref(false)
 
-  // BMR va TDEE hisoblash (Mifflin-St Jeor)
   function calcDailyCalories(profile) {
     if (!profile?.height_cm || !profile?.weight_kg || !profile?.birth_year) return 2000
     const age = new Date().getFullYear() - profile.birth_year
@@ -25,7 +24,6 @@ export const useNutritionStore = defineStore('nutrition', () => {
   }
 
   function getMacroRecommendation(calories, goal) {
-    // goal: 'lose_weight', 'maintain', 'gain_muscle'
     let protein, carbs, fat
     if (goal === 'lose_weight') {
       protein = Math.round((calories * 0.35) / 4)
@@ -45,22 +43,30 @@ export const useNutritionStore = defineStore('nutrition', () => {
 
   async function fetchLogs(dateStr) {
     const auth = useAuthStore()
+    // BUG FIX: auth.user?.id → auth.user?.id
+    if (!auth.user?.id) return
     loading.value = true
-    const { data } = await supabase
-      .from('nutrition_logs')
-      .select('*')
-      .eq('user_id', auth.user.value?.id)
-      .eq('log_date', dateStr)
-      .order('created_at')
-    logs.value = data || []
-    loading.value = false
+    try {
+      const { data } = await supabase
+        .from('nutrition_logs')
+        .select('*')
+        .eq('user_id', auth.user.id)
+        .eq('log_date', dateStr)
+        .order('created_at')
+      logs.value = data || []
+    } catch (e) {
+      console.error('fetchLogs error:', e)
+    } finally {
+      loading.value = false
+    }
   }
 
   async function addLog(log) {
     const auth = useAuthStore()
+    // BUG FIX: auth.user?.id → auth.user?.id
     const { data, error } = await supabase
       .from('nutrition_logs')
-      .insert({ ...log, user_id: auth.user.value?.id })
+      .insert({ ...log, user_id: auth.user?.id })
       .select().single()
     if (error) throw error
     logs.value.push(data)

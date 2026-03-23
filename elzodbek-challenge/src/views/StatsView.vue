@@ -28,14 +28,14 @@
 
     <!-- Challenge Progress -->
     <div class="card">
-      <div class="card-title">🏁 Challenge: {{ challengeDaysPassed }}/{{ auth.profile.value?.challenge_duration || 90 }} kun</div>
+      <div class="card-title">🏁 Challenge: {{ challengeDaysPassed }}/{{ auth.profile?.challenge_duration || 90 }} kun</div>
       <div class="challenge-bar-wrap">
         <div class="ch-bar"><div class="ch-fill" :style="{ width: challengePct + '%' }"></div></div>
         <span class="ch-pct">{{ challengePct }}%</span>
       </div>
       <div class="ch-info">
-        <span>Boshlanish: {{ auth.profile.value?.challenge_start || '—' }}</span>
-        <span>Tugash: {{ auth.profile.value?.challenge_end || '—' }}</span>
+        <span>Boshlanish: {{ auth.profile?.challenge_start || '—' }}</span>
+        <span>Tugash: {{ auth.profile?.challenge_end || '—' }}</span>
       </div>
     </div>
 
@@ -98,13 +98,14 @@ const nextLevel = computed(() => { const i = LEVELS.indexOf(currentLevel.value);
 const levelPct = computed(() => { const c=currentLevel.value.min, n=nextLevel.value.min; if(c===n) return 100; return Math.min(100,Math.round(((totalPts.value-c)/(n-c))*100)) })
 const pointsToNext = computed(() => Math.max(0, nextLevel.value.min - totalPts.value))
 
+// BUG FIX: auth.profile → auth.profile
 const challengeDaysPassed = computed(() => {
-  const start = auth.profile.value?.challenge_start
+  const start = auth.profile?.challenge_start
   if (!start) return 0
   return Math.max(0, Math.floor((today - new Date(start)) / 86400000))
 })
 const challengePct = computed(() => {
-  const dur = auth.profile.value?.challenge_duration || 90
+  const dur = auth.profile?.challenge_duration || 90
   return Math.min(100, Math.round((challengeDaysPassed.value / dur) * 100))
 })
 
@@ -135,34 +136,43 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
-.page-header { margin-bottom: 20px; }
-.page-header h1 { font-family: var(--font-display); font-weight: 800; font-size: 24px; }
-.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 14px; }
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; }
-.sc-icon { font-size: 24px; margin-bottom: 8px; }
-.sc-val { font-family: var(--font-display); font-weight: 800; font-size: 22px; }
-.sc-label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
-.level-card { display: flex; align-items: center; gap: 16px; }
-.level-badge { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
-.level-info { flex: 1; }
-.level-name { font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+.page { padding: 16px; max-width: 600px; margin: 0 auto; }
+.page-header { margin-bottom: 16px; }
+.page-header h1 { font-family: var(--font-display); font-weight: 800; font-size: 22px; }
+
+/* Responsive stats grid */
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 10px; text-align: center; }
+.sc-icon { font-size: 20px; margin-bottom: 6px; }
+.sc-val { font-family: var(--font-display); font-weight: 800; font-size: 18px; word-break: break-word; }
+.sc-label { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+/* Level card - mobile friendly */
+.level-card { display: flex; align-items: center; gap: 14px; }
+.level-badge { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.level-info { flex: 1; min-width: 0; }
+.level-name { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
 .level-desc { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
 .level-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
 .level-fill { height: 100%; border-radius: 3px; transition: width 0.6s; }
 .level-next { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); }
+
+/* Challenge */
 .challenge-bar-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .ch-bar { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
 .ch-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 4px; transition: width 0.5s; }
-.ch-pct { font-family: var(--font-mono); font-size: 13px; color: var(--accent-light); }
-.ch-info { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); font-family: var(--font-mono); }
-.week-chart { display: flex; gap: 8px; height: 120px; align-items: flex-end; }
-.wc-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; }
-.wc-pct { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-bottom: 4px; }
-.wc-bar-wrap { flex: 1; width: 100%; background: var(--surface2); border-radius: 6px; overflow: hidden; display: flex; align-items: flex-end; }
-.wc-bar { width: 100%; border-radius: 6px; transition: height 0.5s; }
-.wc-day { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+.ch-pct { font-family: var(--font-mono); font-size: 13px; color: var(--accent-light); flex-shrink: 0; }
+.ch-info { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); flex-wrap: wrap; gap: 4px; }
+
+/* Week chart - mobile responsive */
+.week-chart { display: flex; gap: 6px; height: 110px; align-items: flex-end; }
+.wc-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; min-width: 0; }
+.wc-pct { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-bottom: 3px; }
+.wc-bar-wrap { flex: 1; width: 100%; background: var(--surface2); border-radius: 4px; overflow: hidden; display: flex; align-items: flex-end; }
+.wc-bar { width: 100%; border-radius: 4px; transition: height 0.5s; }
+.wc-day { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 5px; }
 .wc-day.today { color: var(--accent-light); font-weight: 700; }
+
 .quote-card { text-align: center; }
-.quote-text { font-size: 15px; font-style: italic; line-height: 1.6; margin-bottom: 16px; }
+.quote-text { font-size: 14px; font-style: italic; line-height: 1.6; margin-bottom: 16px; }
 </style>

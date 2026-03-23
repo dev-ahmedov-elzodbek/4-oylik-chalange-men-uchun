@@ -20,11 +20,11 @@ export const useTasksStore = defineStore('tasks', () => {
         .order('sort_order')
 
       // Agar login bo'lsa — o'z vazifalari ham
-      if (auth.user.value?.id) {
+      if (auth.user?.id) {
         query = supabase
           .from('tasks')
           .select('*')
-          .or(`user_id.eq.${auth.user.value.id},is_template.eq.true`)
+          .or(`user_id.eq.${auth.user?.id},is_template.eq.true`)
           .eq('is_active', true)
           .order('sort_order')
       }
@@ -42,12 +42,12 @@ export const useTasksStore = defineStore('tasks', () => {
 
   async function fetchCompletions(dateStr) {
     const auth = useAuthStore()
-    if (!auth.user.value?.id) return
+    if (!auth.user?.id) return
     try {
       const { data } = await supabase
         .from('task_completions')
         .select('task_id')
-        .eq('user_id', auth.user.value.id)
+        .eq('user_id', auth.user?.id)
         .eq('completed_date', dateStr)
       completions.value[dateStr] = data?.map(d => d.task_id) || []
     } catch (e) {
@@ -57,18 +57,18 @@ export const useTasksStore = defineStore('tasks', () => {
 
   async function toggleCompletion(taskId, dateStr) {
     const auth = useAuthStore()
-    if (!auth.user.value?.id) return
+    if (!auth.user?.id) return
     const done = completions.value[dateStr]?.includes(taskId)
     if (done) {
       await supabase.from('task_completions')
         .delete()
-        .eq('user_id', auth.user.value.id)
+        .eq('user_id', auth.user?.id)
         .eq('task_id', taskId)
         .eq('completed_date', dateStr)
       completions.value[dateStr] = completions.value[dateStr]?.filter(id => id !== taskId)
     } else {
       await supabase.from('task_completions')
-        .insert({ user_id: auth.user.value.id, task_id: taskId, completed_date: dateStr })
+        .insert({ user_id: auth.user?.id, task_id: taskId, completed_date: dateStr })
       if (!completions.value[dateStr]) completions.value[dateStr] = []
       completions.value[dateStr].push(taskId)
     }
@@ -105,9 +105,9 @@ export const useTasksStore = defineStore('tasks', () => {
 
   async function addTask(task) {
     const auth = useAuthStore()
-    if (!auth.user.value?.id) return
+    if (!auth.user?.id) return
     const { data, error } = await supabase.from('tasks')
-      .insert({ ...task, user_id: auth.user.value.id, is_template: false })
+      .insert({ ...task, user_id: auth.user?.id, is_template: false })
       .select().single()
     if (error) throw error
     tasks.value.push(data)

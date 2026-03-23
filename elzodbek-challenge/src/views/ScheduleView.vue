@@ -106,7 +106,7 @@ function toggleDay(i) {
 async function addBlock() {
   if (!newBlock.value.title) return
   const { data } = await supabase.from('time_blocks').insert({
-    user_id: auth.user.value?.id,
+    user_id: auth.user?.id,
     title: newBlock.value.title,
     day_of_week: newBlock.value.days.map(d => d + 1),
     start_time: newBlock.value.start_time,
@@ -123,7 +123,7 @@ async function deleteBlock(id) {
 }
 
 onMounted(async () => {
-  const { data } = await supabase.from('time_blocks').select('*').eq('user_id', auth.user.value?.id)
+  const { data } = await supabase.from('time_blocks').select('*').eq('user_id', auth.user?.id)
   userBlocks.value = data || []
 })
 </script>
