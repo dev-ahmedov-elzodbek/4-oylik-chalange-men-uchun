@@ -13,11 +13,11 @@
 
       <!-- Step 1: Direction -->
       <div v-if="step === 1" class="ob-step-content">
-        <h2>Qaysi yo'nalishda rivojlanmoqchisiz?</h2>
+        <h2>{{ t('onboarding.direction') }}</h2>
         <div class="chips-grid">
-          <button v-for="dir in directionList" :key="dir.key"
-            class="chip chip-lg" :class="{ active: form.direction === dir.key }"
-            @click="form.direction = dir.key">{{ dir.icon }} {{ dir.label }}</button>
+          <button v-for="(label, key) in t('onboarding.directions')" :key="key"
+            class="chip chip-lg" :class="{ active: form.direction === key }"
+            @click="form.direction = key">{{ label }}</button>
         </div>
       </div>
 
@@ -31,13 +31,13 @@
         </div>
       </div>
 
-      <!-- Step 3: Sports — TUZATILDI -->
+      <!-- Step 3: Sports -->
       <div v-if="step === 3" class="ob-step-content">
         <h2>{{ t('onboarding.sports') }}</h2>
         <div class="chips-grid">
-          <button v-for="sp in sportsList" :key="sp.key"
-            class="chip chip-lg" :class="{ active: form.sports.includes(sp.key) }"
-            @click="toggleArr(form.sports, sp.key)">{{ sp.icon }} {{ sp.label }}</button>
+          <button v-for="(label, key) in t('onboarding.sportsList')" :key="key"
+            class="chip chip-lg" :class="{ active: form.sports.includes(key) }"
+            @click="toggleArr(form.sports, key)">{{ label }}</button>
         </div>
       </div>
 
@@ -76,7 +76,7 @@
         </div>
       </div>
 
-      <!-- Step 5: Health -->
+      <!-- Step 5: Health — YANGILANGAN -->
       <div v-if="step === 5" class="ob-step-content">
         <h2>{{ t('onboarding.health') }}</h2>
 
@@ -98,6 +98,7 @@
             type="date"
             :max="maxBirthDate"
             :min="minBirthDate"
+            @change="updateAgeFromDate"
           />
           <div v-if="calculatedAge" class="age-display">
             🎂 Yosh: <strong>{{ calculatedAge }} yosh</strong>
@@ -116,7 +117,7 @@
           </div>
         </div>
 
-        <!-- BMI -->
+        <!-- BMI ko'rsatgich -->
         <div v-if="bmi" class="bmi-card">
           <div class="bmi-row">
             <div class="bmi-item">
@@ -134,9 +135,9 @@
         <div class="form-group">
           <label class="label">Faoliyat darajasi</label>
           <div class="chips-grid">
-            <button v-for="act in activityLevels" :key="act.key"
-              class="chip" :class="{ active: form.activity_level === act.key }"
-              @click="form.activity_level = act.key">{{ act.icon }} {{ act.label }}</button>
+            <button v-for="(label, key) in t('onboarding.activityLevels')" :key="key"
+              class="chip" :class="{ active: form.activity_level === key }"
+              @click="form.activity_level = key">{{ label }}</button>
           </div>
         </div>
 
@@ -211,7 +212,7 @@ const nutrition = useNutritionStore()
 const step = ref(1)
 const saving = ref(false)
 
-const stepLabels = ["Yo'nalish", "O'rganish", 'Sport', 'Vaqt', "Sog'liq", 'Maqsad']
+const stepLabels = ['Yo\'nalish', 'O\'rganish', 'Sport', 'Vaqt', 'Sog\'liq', 'Maqsad']
 
 const form = ref({
   direction: '',
@@ -227,6 +228,7 @@ const form = ref({
   challenge_duration: 90
 })
 
+// Tug'ilgan sana limiti
 const today = new Date()
 const maxBirthDate = `${today.getFullYear() - 10}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
 const minBirthDate = `${today.getFullYear() - 100}-01-01`
@@ -245,11 +247,15 @@ const birthYear = computed(() => {
   return new Date(form.value.birth_date).getFullYear()
 })
 
+function updateAgeFromDate() {
+  // avtomatik hisoblanadi calculatedAge orqali
+}
+
 const bmi = computed(() => {
   const h = form.value.height_cm
   const w = form.value.weight_kg
   if (!h || !w) return null
-  return (w / ((h / 100) ** 2)).toFixed(1)
+  return (w / ((h/100) ** 2)).toFixed(1)
 })
 
 const bmiStatus = computed(() => {
@@ -286,29 +292,6 @@ const macros = computed(() => {
   return nutrition.getMacroRecommendation(calorieEstimate.value, 'maintain')
 })
 
-// Faoliyat darajalari — BUG TUZATILDI
-const activityLevels = [
-  { key: 'low', icon: '🛋️', label: 'Past (kam harakat)' },
-  { key: 'moderate', icon: '🚶', label: "O'rtacha (haftada 3x)" },
-  { key: 'high', icon: '🏃', label: 'Yuqori (haftada 5x)' },
-  { key: 'very_high', icon: '🔥', label: "Juda yuqori (sportchi)" },
-]
-
-// Yo'nalishlar — BUG TUZATILDI
-const directionList = [
-  { key: 'it', icon: '💻', label: "IT / Dasturlash" },
-  { key: 'medicine', icon: '🏥', label: 'Tibbiyot' },
-  { key: 'law', icon: '⚖️', label: 'Huquqshunoslik' },
-  { key: 'business', icon: '📈', label: 'Biznes / Iqtisod' },
-  { key: 'art', icon: '🎨', label: "San'at / Dizayn" },
-  { key: 'engineering', icon: '⚙️', label: 'Muhandislik' },
-  { key: 'education', icon: '📚', label: "Ta'lim" },
-  { key: 'science', icon: '🔬', label: 'Fan / Tadqiqot' },
-  { key: 'language', icon: '🌍', label: 'Tilshunoslik' },
-  { key: 'other', icon: '✨', label: 'Boshqa' },
-]
-
-// O'rganish fanlari
 const subjects = [
   { key: 'math', icon: '📐', label: 'Matematika' },
   { key: 'physics', icon: '⚡', label: 'Fizika' },
@@ -322,28 +305,12 @@ const subjects = [
   { key: 'geography', icon: '🗺️', label: 'Geografiya' },
 ]
 
-// Sport turlari — BUG TUZATILDI
-const sportsList = [
-  { key: 'football', icon: '⚽', label: 'Futbol' },
-  { key: 'basketball', icon: '🏀', label: 'Basketbol' },
-  { key: 'volleyball', icon: '🏐', label: 'Voleybol' },
-  { key: 'gym', icon: '🏋️', label: 'Gym' },
-  { key: 'running', icon: '🏃', label: 'Yugurish' },
-  { key: 'swimming', icon: '🏊', label: 'Suzish' },
-  { key: 'tennis', icon: '🎾', label: 'Tennis' },
-  { key: 'boxing', icon: '🥊', label: 'Boks' },
-  { key: 'cycling', icon: '🚴', label: 'Velosiped' },
-  { key: 'yoga', icon: '🧘', label: 'Yoga' },
-  { key: 'martial_arts', icon: '🥋', label: 'Kurash' },
-  { key: 'table_tennis', icon: '🏓', label: 'Stol tennisi' },
-]
-
 const dayNames = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
 
 const timeOptions = []
 for (let h = 5; h <= 23; h++) {
   for (let m of ['00', '30']) {
-    timeOptions.push(`${String(h).padStart(2, '0')}:${m}`)
+    timeOptions.push(`${String(h).padStart(2,'0')}:${m}`)
   }
 }
 
@@ -383,11 +350,7 @@ async function finish() {
     if (form.value.timeBlocks.length) {
       await supabase.from('time_blocks').insert(
         form.value.timeBlocks.filter(b => b.title).map(b => ({
-          user_id: auth.user?.id,
-          title: b.title,
-          day_of_week: b.days,
-          start_time: b.start,
-          end_time: b.end,
+          user_id: auth.user.value?.id, ...b
         }))
       )
     }
@@ -417,6 +380,7 @@ async function finish() {
 .chips-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip-lg { font-size: 14px; padding: 10px 16px; }
 
+/* Tug'ilgan sana */
 .age-display {
   margin-top: 8px;
   padding: 8px 12px;
@@ -426,6 +390,7 @@ async function finish() {
   color: var(--accent-light);
 }
 
+/* BMI card */
 .bmi-card {
   background: var(--surface2);
   border-radius: var(--radius);
@@ -438,16 +403,19 @@ async function finish() {
 .bmi-status { font-weight: 600; font-size: 16px; }
 .bmi-label { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
 
+/* Kaloriya */
 .calorie-card { background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.3); border-radius: var(--radius); padding: 16px; margin-top: 16px; text-align: center; }
 .cal-title { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
 .cal-value { font-family: var(--font-display); font-weight: 800; font-size: 36px; color: var(--accent-light); }
 .cal-value span { font-size: 16px; }
 .cal-macros { display: flex; justify-content: center; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--text-dim); }
 
+/* Duration */
 .duration-options { display: flex; gap: 8px; }
 .dur-btn { flex: 1; padding: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: var(--font-mono); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; }
 .dur-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
 
+/* Summary */
 .summary-items { display: flex; flex-direction: column; gap: 8px; }
 .sum-item { font-size: 14px; display: flex; gap: 8px; }
 .sum-item span { color: var(--text-dim); min-width: 90px; }
@@ -460,4 +428,3 @@ async function finish() {
 .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
-

@@ -40,24 +40,24 @@
       <div class="macros-row">
         <div class="macro-item">
           <div class="macro-bar-wrap">
-            <div class="macro-bar" :style="{ width: Math.min(100, totals.protein / (macroGoals.protein||1) * 100) + '%', background: '#6c63ff' }"></div>
+            <div class="macro-bar" :style="{ width: Math.min(100, totals.protein / macroGoals.protein * 100) + '%', background: '#6c63ff' }"></div>
           </div>
           <div class="macro-label">🥩 {{ t('nutrition.protein') }}</div>
-          <div class="macro-val">{{ totals.protein.toFixed(0) }}/{{ macroGoals.protein || 0 }}g</div>
+          <div class="macro-val">{{ totals.protein.toFixed(0) }}/{{ macroGoals.protein }}g</div>
         </div>
         <div class="macro-item">
           <div class="macro-bar-wrap">
-            <div class="macro-bar" :style="{ width: Math.min(100, totals.carbs / (macroGoals.carbs||1) * 100) + '%', background: '#f59e0b' }"></div>
+            <div class="macro-bar" :style="{ width: Math.min(100, totals.carbs / macroGoals.carbs * 100) + '%', background: '#f59e0b' }"></div>
           </div>
           <div class="macro-label">🍞 {{ t('nutrition.carbs') }}</div>
-          <div class="macro-val">{{ totals.carbs.toFixed(0) }}/{{ macroGoals.carbs || 0 }}g</div>
+          <div class="macro-val">{{ totals.carbs.toFixed(0) }}/{{ macroGoals.carbs }}g</div>
         </div>
         <div class="macro-item">
           <div class="macro-bar-wrap">
-            <div class="macro-bar" :style="{ width: Math.min(100, totals.fat / (macroGoals.fat||1) * 100) + '%', background: '#10b981' }"></div>
+            <div class="macro-bar" :style="{ width: Math.min(100, totals.fat / macroGoals.fat * 100) + '%', background: '#10b981' }"></div>
           </div>
           <div class="macro-label">🫒 {{ t('nutrition.fat') }}</div>
-          <div class="macro-val">{{ totals.fat.toFixed(0) }}/{{ macroGoals.fat || 0 }}g</div>
+          <div class="macro-val">{{ totals.fat.toFixed(0) }}/{{ macroGoals.fat }}g</div>
         </div>
       </div>
     </div>
@@ -152,26 +152,13 @@ const months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','S
 const todayFormatted = `${today.getDate()} ${months[today.getMonth()]}`
 
 const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack']
-function mealIcon(type) { return { breakfast:'🌅', lunch:'☀️', dinner:'🌙', snack:'🍎' }[type] || '🍽️' }
+function mealIcon(t) { return { breakfast:'🌅',lunch:'☀️',dinner:'🌙',snack:'🍎' }[t]||'🍽️' }
 
-// BUG TUZATILDI: auth.profile.value → auth.profile (Pinia store auto-unwrap)
-const dailyCalGoal = computed(() => {
-  if (!auth.profile) return 2000
-  return nutrition.calcDailyCalories(auth.profile) || 2000
-})
-
-const macroGoals = computed(() => {
-  if (!dailyCalGoal.value) return { protein: 150, carbs: 250, fat: 65 }
-  return nutrition.getMacroRecommendation(dailyCalGoal.value, 'maintain') || { protein: 150, carbs: 250, fat: 65 }
-})
-
-const totals = computed(() => {
-  const result = nutrition.getDayTotals()
-  return result || { calories: 0, protein: 0, carbs: 0, fat: 0 }
-})
+const dailyCalGoal = computed(() => nutrition.calcDailyCalories(auth.profile.value))
+const macroGoals = computed(() => nutrition.getMacroRecommendation(dailyCalGoal.value, 'maintain'))
+const totals = computed(() => nutrition.getDayTotals())
 
 const calPercent = computed(() => dailyCalGoal.value ? (totals.value.calories / dailyCalGoal.value) * 100 : 0)
-
 const calRingColor = computed(() => {
   if (calPercent.value > 110) return '#ef4444'
   if (calPercent.value >= 90) return '#00d4aa'
@@ -187,28 +174,14 @@ const recommendation = computed(() => {
   return `🍽️ Bugun ${rem} kcal iste'mol qilishingiz kerak. Sog'lom ovqatlar tanlang!`
 })
 
-// BUG TUZATILDI: nutrition.logs.value → nutrition.logs
-function logsByMeal(type) {
-  const logs = nutrition.logs
-  if (!logs || !Array.isArray(logs)) return []
-  return logs.filter(l => l.meal_type === type)
-}
-
-function mealCalories(type) {
-  return logsByMeal(type).reduce((s, l) => s + (l.calories || 0), 0)
-}
+function logsByMeal(type) { return nutrition.logs.value.filter(l => l.meal_type === type) }
+function mealCalories(type) { return logsByMeal(type).reduce((s, l) => s + (l.calories || 0), 0) }
 
 const showModal = ref(false)
-const addForm = ref({
-  meal_name: '', meal_type: 'breakfast',
-  calories: null, protein_g: null, carbs_g: null, fat_g: null
-})
+const addForm = ref({ meal_name: '', meal_type: 'breakfast', calories: null, protein_g: null, carbs_g: null, fat_g: null })
 
 function openAdd(mealType) {
-  addForm.value = {
-    meal_name: '', meal_type: mealType,
-    calories: null, protein_g: null, carbs_g: null, fat_g: null
-  }
+  addForm.value = { meal_name: '', meal_type: mealType, calories: null, protein_g: null, carbs_g: null, fat_g: null }
   showModal.value = true
 }
 
@@ -221,8 +194,6 @@ const quickFoods = [
   { name: 'Olma', calories: 52, protein_g: 0, carbs_g: 14, fat_g: 0 },
   { name: 'Sut (200ml)', calories: 120, protein_g: 6, carbs_g: 10, fat_g: 5 },
   { name: 'Yogurt (150g)', calories: 90, protein_g: 8, carbs_g: 10, fat_g: 2 },
-  { name: 'Banan', calories: 89, protein_g: 1, carbs_g: 23, fat_g: 0 },
-  { name: 'Somsa (1 dona)', calories: 280, protein_g: 10, carbs_g: 30, fat_g: 14 },
 ]
 
 function applyQuick(food) {
