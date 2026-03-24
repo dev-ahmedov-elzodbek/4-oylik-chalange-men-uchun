@@ -50,7 +50,10 @@ export const useAuthStore = defineStore('auth', () => {
   async function register(email, password, fullName) {
     const { data, error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { full_name: fullName } }
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: 'https://dev-ahmedov-elzodbek.github.io/4-oylik-chalange-men-uchun/'
+      }
     })
     if (error) throw error
     return data
@@ -63,7 +66,12 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function loginWithGoogle() {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://dev-ahmedov-elzodbek.github.io/4-oylik-chalange-men-uchun/'
+      }
+    })
     if (error) throw error
   }
 

@@ -18,6 +18,17 @@
   <style>
     body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
   </style>
+  <script>
+    // GitHub Pages SPA routing: 404.html redirects here with ?p=path
+    (function() {
+      var query = window.location.search;
+      if (query.startsWith('?p=')) {
+        var path = decodeURIComponent(query.slice(3));
+        window.history.replaceState(null, null,
+          '/4-oylik-chalange-men-uchun' + (path || '/'));
+      }
+    })();
+  </script>
 </head>
 <body>
   <div id="app"></div>
