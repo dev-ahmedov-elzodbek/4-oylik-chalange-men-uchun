@@ -8,8 +8,8 @@
     <div class="card profile-card">
       <div class="avatar">{{ initials }}</div>
       <div class="profile-info">
-        <div class="profile-name">{{ auth.profile.value?.full_name || 'Foydalanuvchi' }}</div>
-        <div class="profile-email">{{ auth.user.value?.email }}</div>
+        <div class="profile-name">{{ auth.profile?.full_name || 'Foydalanuvchi' }}</div>
+        <div class="profile-email">{{ auth.user?.email }}</div>
         <span class="badge" :class="roleBadge">{{ roleLabel }}</span>
       </div>
     </div>
@@ -20,19 +20,19 @@
       <div class="challenge-info">
         <div class="ch-row">
           <span class="ch-label">Boshlanish</span>
-          <span class="ch-val">{{ auth.profile.value?.challenge_start || '—' }}</span>
+          <span class="ch-val">{{ auth.profile?.challenge_start || '—' }}</span>
         </div>
         <div class="ch-row">
           <span class="ch-label">Tugash</span>
-          <span class="ch-val">{{ auth.profile.value?.challenge_end || '—' }}</span>
+          <span class="ch-val">{{ auth.profile?.challenge_end || '—' }}</span>
         </div>
         <div class="ch-row">
           <span class="ch-label">Davomiylik</span>
-          <span class="ch-val">{{ auth.profile.value?.challenge_duration || 90 }} kun</span>
+          <span class="ch-val">{{ auth.profile?.challenge_duration || 90 }} kun</span>
         </div>
         <div class="ch-row">
           <span class="ch-label">Maqsad</span>
-          <span class="ch-val goal-text">{{ auth.profile.value?.goal || '—' }}</span>
+          <span class="ch-val goal-text">{{ auth.profile?.goal || '—' }}</span>
         </div>
       </div>
       <div class="challenge-bar-wrap">
@@ -48,11 +48,11 @@
       <div class="card-title">💪 Sog'liq ma'lumotlari</div>
       <div class="health-grid">
         <div class="health-item">
-          <div class="hi-val">{{ auth.profile.value?.height_cm || '—' }}</div>
+          <div class="hi-val">{{ auth.profile?.height_cm || '—' }}</div>
           <div class="hi-label">Bo'y (sm)</div>
         </div>
         <div class="health-item">
-          <div class="hi-val">{{ auth.profile.value?.weight_kg || '—' }}</div>
+          <div class="hi-val">{{ auth.profile?.weight_kg || '—' }}</div>
           <div class="hi-label">Vazn (kg)</div>
         </div>
         <div class="health-item">
@@ -79,7 +79,7 @@
         </div>
         <div class="setting-item">
           <span>Yo'nalish</span>
-          <span class="setting-val">{{ auth.profile.value?.direction ? t(`onboarding.directions.${auth.profile.value.direction}`) : '—' }}</span>
+          <span class="setting-val">{{ auth.profile?.direction ? t(`onboarding.directions.${auth.profile?.direction}`) : '—' }}</span>
         </div>
       </div>
     </div>
@@ -138,28 +138,28 @@ function setLang(code) {
 }
 
 const initials = computed(() => {
-  const name = auth.profile.value?.full_name || 'U'
+  const name = auth.profile?.full_name || 'U'
   return name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()
 })
 
 const roleLabel = computed(() => {
-  const r = auth.profile.value?.role
+  const r = auth.profile?.role
   return r === 'superadmin' ? '👑 SuperAdmin' : r === 'admin' ? '🛡️ Admin' : '👤 User'
 })
 
 const roleBadge = computed(() => {
-  const r = auth.profile.value?.role
+  const r = auth.profile?.role
   return r === 'superadmin' ? 'badge-warning' : r === 'admin' ? 'badge-accent' : 'badge-success'
 })
 
 const age = computed(() => {
-  const y = auth.profile.value?.birth_year
+  const y = auth.profile?.birth_year
   return y ? new Date().getFullYear() - y : null
 })
 
 const bmi = computed(() => {
-  const h = auth.profile.value?.height_cm
-  const w = auth.profile.value?.weight_kg
+  const h = auth.profile?.height_cm
+  const w = auth.profile?.weight_kg
   if (!h || !w) return null
   return (w / ((h/100) ** 2)).toFixed(1)
 })
@@ -183,8 +183,8 @@ const bmiColor = computed(() => {
 })
 
 const challengeProgress = computed(() => {
-  const start = auth.profile.value?.challenge_start
-  const dur = auth.profile.value?.challenge_duration || 90
+  const start = auth.profile?.challenge_start
+  const dur = auth.profile?.challenge_duration || 90
   if (!start) return 0
   const days = Math.floor((new Date() - new Date(start)) / 86400000)
   return Math.min(100, Math.round((days / dur) * 100))
