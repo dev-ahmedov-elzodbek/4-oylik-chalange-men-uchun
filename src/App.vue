@@ -42,6 +42,9 @@
         @toggle-theme="toggleTheme"
       />
     </template>
+
+    <!-- Vercel Speed Insights -->
+    <SpeedInsights />
   </div>
 </template>
 
@@ -51,6 +54,7 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth.js'
 import BottomNav from './components/BottomNav.vue'
 import SideNav from './components/SideNav.vue'
+import { SpeedInsights } from '@vercel/speed-insights/vue'
 
 const auth = useAuthStore()
 const route = useRoute()
