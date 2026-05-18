@@ -52,8 +52,8 @@ export const useAuthStore = defineStore('auth', () => {
       email, password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: 'https://dev-ahmedov-elzodbek.github.io/4-oylik-chalange-men-uchun/'
-      }
+             emailRedirectTo: 'https://4-oylik-chalange-men-uchun.vercel.app/'     
+             }
     })
     if (error) throw error
     return data
@@ -69,7 +69,7 @@ export const useAuthStore = defineStore('auth', () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://dev-ahmedov-elzodbek.github.io/4-oylik-chalange-men-uchun/'
+              redirectTo: 'https://4-oylik-chalange-men-uchun.vercel.app/'
       }
     })
     if (error) throw error
