@@ -240,7 +240,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from '../supabase.js'
 import { useAuthStore } from '../stores/auth.js'
 
