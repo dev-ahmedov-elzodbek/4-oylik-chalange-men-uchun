@@ -143,12 +143,12 @@ async function saveTemplate() {
   saving.value = true
   try {
     if (editingTemplate.value) {
-      const { data, error } = await supabase.from('tasks').update({ ...tForm.value }).eq('id', editingTemplate.value.id).select().single()
+      const { data, error } = await supabase.from('tasks').update({ ...tForm.value }).eq('id', editingTemplate.value.id).select()
       if (error) throw error
       const idx = myTemplateTasks.value.findIndex(t => t.id === editingTemplate.value.id)
       if (idx !== -1) myTemplateTasks.value[idx] = data
     } else {
-      const { data, error } = await supabase.from('tasks').insert({ ...tForm.value, is_template: true, user_id: auth.user.id }).select().single()
+      const { data, error } = await supabase.from('tasks').insert({ ...tForm.value, is_template: true, user_id: auth.user.id }).select()
       if (error) throw error
       myTemplateTasks.value.unshift(data)
     }

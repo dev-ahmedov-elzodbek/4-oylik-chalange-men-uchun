@@ -112,8 +112,8 @@ async function addBlock() {
     start_time: newBlock.value.start_time,
     end_time: newBlock.value.end_time,
     color: '#6c63ff'
-  }).select().single()
-  if (data) userBlocks.value.push(data)
+  }).select()
+  if (data) userBlocks.value.push(data?.[0] || data)
   newBlock.value = { title: '', days: [], start_time: '09:00', end_time: '11:00' }
 }
 

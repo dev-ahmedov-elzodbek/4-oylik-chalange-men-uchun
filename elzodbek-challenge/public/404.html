@@ -4,15 +4,14 @@
   <meta charset="utf-8">
   <title>GoalFlow</title>
   <script>
-    // GitHub Pages SPA routing fix
-    // Redirects all 404s back to index.html with the path preserved
+    // GitHub Pages SPA routing
     var path = window.location.pathname;
     var base = '/4-oylik-chalange-men-uchun';
-    var rest = path.replace(base, '');
+    var rest = path.startsWith(base) ? path.slice(base.length) : path;
     var search = window.location.search;
-    var hash = window.location.hash;
-    var query = '?p=' + encodeURIComponent(rest + search) + '&' + hash;
-    window.location.replace(base + '/' + query);
+    window.location.replace(
+      window.location.origin + base + '/?p=' + encodeURIComponent(rest + search)
+    );
   </script>
 </head>
 <body></body>

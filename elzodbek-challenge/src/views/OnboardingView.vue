@@ -330,34 +330,48 @@ async function finish() {
     const startDate = new Date()
     const endDate = new Date()
     endDate.setDate(endDate.getDate() + form.value.challenge_duration)
- 
-    await auth.updateProfile({
-      onboarding_done: true,
-      direction: form.value.direction,
-      subjects: form.value.subjects,
-      sports: form.value.sports,
-      goal: form.value.goal,
-      challenge_start: startDate.toISOString().split('T')[0],
-      challenge_end: endDate.toISOString().split('T')[0],
-      challenge_duration: form.value.challenge_duration,
-      birth_year: birthYear.value,
-      gender: form.value.gender,
-      height_cm: form.value.height_cm,
-      weight_kg: form.value.weight_kg,
-      activity_level: form.value.activity_level,
-    })
- 
-    if (form.value.timeBlocks.length) {
-      await supabase.from('time_blocks').insert(
-        form.value.timeBlocks.filter(b => b.title).map(b => ({
-          user_id: auth.user?.id, ...b
-        }))
-      )
+
+    const { error: updateErr } = await supabase
+      .from('profiles')
+      .update({
+        onboarding_done: true,
+        direction: form.value.direction,
+        subjects: form.value.subjects,
+        sports: form.value.sports,
+        goal: form.value.goal,
+        challenge_start: startDate.toISOString().split('T')[0],
+        challenge_end: endDate.toISOString().split('T')[0],
+        challenge_duration: form.value.challenge_duration,
+        birth_year: birthYear.value,
+        gender: form.value.gender,
+        height_cm: form.value.height_cm,
+        weight_kg: form.value.weight_kg,
+        activity_level: form.value.activity_level,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', auth.user?.id)
+
+    if (updateErr) {
+      console.error('Profile update error:', updateErr)
+      alert('Xato: ' + updateErr.message)
+      return
     }
- 
+
+    await auth.fetchProfile()
+
+    if (form.value.timeBlocks.length) {
+      const validBlocks = form.value.timeBlocks.filter(b => b.title)
+      if (validBlocks.length) {
+        await supabase.from('time_blocks').insert(
+          validBlocks.map(b => ({ user_id: auth.user?.id, ...b }))
+        ).catch(e => console.warn('time_blocks insert skipped:', e))
+      }
+    }
+
     router.push('/today')
   } catch (e) {
-    console.error(e)
+    console.error('finish error:', e)
+    alert('Kutilmagan xato: ' + e.message)
   } finally {
     saving.value = false
   }

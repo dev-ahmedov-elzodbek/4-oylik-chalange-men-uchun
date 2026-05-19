@@ -108,7 +108,7 @@ export const useTasksStore = defineStore('tasks', () => {
     if (!auth.user?.id) return
     const { data, error } = await supabase.from('tasks')
       .insert({ ...task, user_id: auth.user?.id, is_template: false })
-      .select().single()
+      .select()
     if (error) throw error
     tasks.value.push(data)
     return data
@@ -116,10 +116,10 @@ export const useTasksStore = defineStore('tasks', () => {
 
   async function updateTask(id, updates) {
     const { data, error } = await supabase.from('tasks')
-      .update(updates).eq('id', id).select().single()
+      .update(updates).eq('id', id).select()
     if (error) throw error
     const idx = tasks.value.findIndex(t => t.id === id)
-    if (idx !== -1) tasks.value[idx] = data
+    if (idx !== -1) tasks.value[idx] = data?.[0] || data
     return data
   }
 

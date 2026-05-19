@@ -1,5 +1,5 @@
 <template>
-  <div class="app-wrap">
+  <div class="app-wrap" :data-theme="theme">
     <div v-if="auth.loading" class="splash">
       <div class="splash-logo">GF</div>
       <div class="splash-name">GoalFlow</div>
@@ -7,29 +7,95 @@
     </div>
 
     <template v-else>
-      <router-view v-slot="{ Component }">
-        <transition name="fade">
-          <component :is="Component" />
-        </transition>
-      </router-view>
-      <BottomNav v-if="auth.isLoggedIn && !auth.needsOnboarding" />
+      <div class="app-layout">
+        <!-- Desktop Sidebar -->
+        <SideNav
+          v-if="auth.isLoggedIn && !auth.needsOnboarding"
+          :theme="theme"
+          @toggle-theme="toggleTheme"
+        />
+
+        <!-- Main Content -->
+        <div class="app-content" :class="{ 'has-sidebar': auth.isLoggedIn && !auth.needsOnboarding }">
+
+          <!-- Guest / onboarding theme toggle (floating top-right) -->
+          <button
+            v-if="!auth.isLoggedIn || auth.needsOnboarding || isSuperAdminPage"
+            class="guest-theme-btn"
+            @click="toggleTheme"
+            :title="theme === 'dark' ? 'Light mode' : 'Dark mode'">
+            <span>{{ theme === 'dark' ? '☀️' : '🌙' }}</span>
+          </button>
+
+          <router-view v-slot="{ Component }">
+            <transition name="fade">
+              <component :is="Component" />
+            </transition>
+          </router-view>
+        </div>
+      </div>
+
+      <!-- Mobile Bottom Nav -->
+      <BottomNav
+        v-if="auth.isLoggedIn && !auth.needsOnboarding"
+        :theme="theme"
+        @toggle-theme="toggleTheme"
+      />
     </template>
   </div>
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth.js'
 import BottomNav from './components/BottomNav.vue'
+import SideNav from './components/SideNav.vue'
 
 const auth = useAuthStore()
+const route = useRoute()
+const isSuperAdminPage = computed(() =>
+  route.path === '/superadmin' || route.path === '/superadmin-login'
+)
+
+const saved = localStorage.getItem('gf_theme') || 'dark'
+const theme = ref(saved)
+
+function toggleTheme() {
+  theme.value = theme.value === 'dark' ? 'light' : 'dark'
+  localStorage.setItem('gf_theme', theme.value)
+}
 </script>
 
 <style>
-.app-wrap { min-height: 100vh; }
-.splash { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); gap: 12px; }
-.splash-logo { width: 72px; height: 72px; background: var(--accent); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 800; font-size: 28px; color: white; box-shadow: 0 0 40px rgba(108,99,255,0.4); }
-.splash-name { font-family: var(--font-display); font-weight: 800; font-size: 28px; color: var(--text); }
-.splash-loader { width: 120px; height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; margin-top: 16px; }
-.loader-bar { height: 100%; background: var(--accent); border-radius: 2px; animation: loading 1.2s ease infinite; }
-@keyframes loading { 0% { width: 0%; margin-left: 0; } 50% { width: 60%; margin-left: 20%; } 100% { width: 0%; margin-left: 100%; } }
+.app-wrap {
+  min-height: 100vh;
+  background: var(--bg);
+  transition: background 0.3s;
+}
+
+/* Floating theme toggle for guest / onboarding */
+.guest-theme-btn {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  z-index: 200;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+.guest-theme-btn:hover {
+  background: var(--surface2);
+  transform: scale(1.08);
+  box-shadow: var(--shadow);
+}
 </style>
