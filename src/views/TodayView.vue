@@ -424,7 +424,82 @@ async function saveEdit() {
   finally { editSaving.value = false }
 }
 
-onMounted(() => loadTasks())
+// ===== BUDILNIK (ALARM) =====
+const alarms = ref(JSON.parse(localStorage.getItem('gf_alarms') || '[]'))
+const showAlarmForm = ref(false)
+const ringingAlarm = ref(null)
+const newAlarm = ref({ time: '07:00', label: "Uyg\'onish vaqti", repeat: 'daily' })
+let alarmInterval = null
+
+function saveAlarms() { localStorage.setItem('gf_alarms', JSON.stringify(alarms.value)) }
+
+function addAlarm() {
+  if (!newAlarm.value.time) return
+  alarms.value.push({ id: Date.now(), time: newAlarm.value.time, label: newAlarm.value.label || 'Eslatma', repeat: newAlarm.value.repeat, active: true })
+  saveAlarms()
+  showAlarmForm.value = false
+  newAlarm.value = { time: '07:00', label: "Uyg\'onish vaqti", repeat: 'daily' }
+  requestNotificationPermission()
+}
+
+function removeAlarm(id) { alarms.value = alarms.value.filter(a => a.id !== id); saveAlarms() }
+function toggleAlarm(alarm) { alarm.active = !alarm.active; saveAlarms() }
+function repeatLabel(r) { return { once: 'Bir marta', daily: 'Har kuni', weekdays: 'Ish kunlari' }[r] || r }
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission()
+}
+
+function playAlarmSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    const beep = (f, s, d) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value = f; o.type = 'sine'; g.gain.setValueAtTime(0.3, ctx.currentTime+s); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+s+d); o.start(ctx.currentTime+s); o.stop(ctx.currentTime+s+d) }
+    beep(880,0,0.3); beep(1100,0.4,0.3); beep(880,0.8,0.3); beep(1100,1.2,0.3); beep(1320,1.6,0.5)
+  } catch(e) {}
+}
+
+function showNotification(alarm) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('⏰ GoalFlow', { body: `${alarm.time} — ${alarm.label}`, requireInteraction: true })
+  }
+}
+
+function checkAlarms() {
+  const now = new Date()
+  const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+  const day = now.getDay()
+  alarms.value.forEach(alarm => {
+    if (!alarm.active || alarm._fired) return
+    if (alarm.time !== hhmm) return
+    if (alarm.repeat === 'weekdays' && (day === 0 || day === 6)) return
+    alarm._fired = true
+    ringingAlarm.value = alarm
+    playAlarmSound()
+    showNotification(alarm)
+    if (alarm.repeat === 'once') { alarm.active = false; saveAlarms() }
+  })
+  alarms.value.forEach(a => { if (a._fired && a.time !== hhmm) delete a._fired })
+}
+
+function dismissAlarm() { ringingAlarm.value = null }
+
+function snoozeAlarm() {
+  if (!ringingAlarm.value) return
+  const now = new Date(); now.setMinutes(now.getMinutes() + 5)
+  const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+  alarms.value.push({ id: Date.now(), time: t, label: `😴 ${ringingAlarm.value.label}`, repeat: 'once', active: true })
+  saveAlarms(); ringingAlarm.value = null
+}
+
+onMounted(() => {
+  loadTasks()
+  requestNotificationPermission()
+  alarmInterval = setInterval(checkAlarms, 10000)
+  checkAlarms()
+})
+
+onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
+
 </script>
 
 <style scoped>
@@ -603,4 +678,24 @@ onMounted(() => loadTasks())
 .lp-icon { font-size: 48px; }
 .login-prompt h3 { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
 .login-prompt p { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
+
+/* ── Budilnik ── */
+.alarm-card { border: 1px solid rgba(255,200,0,0.2); }
+.alarm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.alarm-form { background: var(--surface2); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px; border: 1px solid var(--border2); }
+.alarm-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.alarm-item:last-child { border-bottom: none; }
+.alarm-toggle { cursor: pointer; padding: 4px; }
+.alarm-dot { width: 20px; height: 20px; border-radius: 50%; background: var(--surface3); border: 2px solid var(--border2); transition: all 0.2s; }
+.alarm-dot.active { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px rgba(108,99,255,0.5); }
+.alarm-time { font-family: var(--font-mono); font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+.alarm-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.alarm-ring-modal {
+  background: var(--surface); border: 2px solid var(--accent);
+  border-radius: var(--radius); padding: 32px 28px;
+  width: 100%; max-width: 340px; text-align: center;
+  animation: ring-pulse 0.5s infinite alternate;
+}
+@keyframes ring-pulse { from { box-shadow: 0 0 20px rgba(108,99,255,0.3); } to { box-shadow: 0 0 40px rgba(108,99,255,0.8); } }
+@keyframes ring { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
 </style>
