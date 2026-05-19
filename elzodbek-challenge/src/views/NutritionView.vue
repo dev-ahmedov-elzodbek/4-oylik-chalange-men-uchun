@@ -2,137 +2,108 @@
   <div class="page">
     <div class="page-header">
       <h1>{{ t('nutrition.title') }}</h1>
-      <div class="today-date">{{ todayFormatted }}</div>
+      <div style="font-size:13px;color:var(--text-dim)">{{ todayFormatted }}</div>
     </div>
 
-    <!-- Calorie Ring -->
-    <div class="card calorie-summary">
-      <div class="cal-ring-wrap">
-        <svg viewBox="0 0 120 120" width="110" height="110">
-          <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
+    <div class="card calorie-card">
+      <div class="cal-top">
+        <svg viewBox="0 0 120 120" class="cal-svg">
+          <circle cx="60" cy="60" r="48" fill="none" stroke="var(--surface3)" stroke-width="10"/>
           <circle cx="60" cy="60" r="48" fill="none" :stroke="calRingColor" stroke-width="10"
-            stroke-linecap="round"
-            :stroke-dasharray="301.6"
+            stroke-linecap="round" :stroke-dasharray="301.6"
             :stroke-dashoffset="301.6 - (301.6 * Math.min(calPercent,100) / 100)"
-            transform="rotate(-90 60 60)"
-            style="transition:stroke-dashoffset 0.6s"/>
-          <text x="60" y="55" text-anchor="middle" fill="white" font-size="20" font-family="Space Mono" font-weight="700">{{ totals.calories }}</text>
+            transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 0.6s"/>
+          <text x="60" y="54" text-anchor="middle" fill="currentColor" font-size="20" font-family="Space Mono" font-weight="700">{{ totals.calories }}</text>
           <text x="60" y="72" text-anchor="middle" fill="#6b7280" font-size="10" font-family="DM Sans">kcal</text>
         </svg>
         <div class="cal-info">
-          <div class="cal-goal-row">
-            <span class="cal-label">{{ t('nutrition.goal') }}</span>
-            <span class="cal-val">{{ dailyCalGoal }} kcal</span>
-          </div>
-          <div class="cal-goal-row">
-            <span class="cal-label">{{ t('nutrition.consumed') }}</span>
-            <span class="cal-val" :style="{ color: calRingColor }">{{ totals.calories }} kcal</span>
-          </div>
-          <div class="cal-goal-row">
-            <span class="cal-label">{{ t('nutrition.remaining') }}</span>
-            <span class="cal-val">{{ Math.max(0, dailyCalGoal - totals.calories) }} kcal</span>
-          </div>
+          <div class="ci-row"><span>{{ t('nutrition.goal') }}</span><b>{{ dailyCalGoal }} kcal</b></div>
+          <div class="ci-row"><span>{{ t('nutrition.consumed') }}</span><b :style="{color:calRingColor}">{{ totals.calories }} kcal</b></div>
+          <div class="ci-row"><span>{{ t('nutrition.remaining') }}</span><b>{{ Math.max(0, dailyCalGoal - totals.calories) }} kcal</b></div>
         </div>
       </div>
-
-      <div class="macros-row">
-        <div class="macro-item">
-          <div class="macro-bar-wrap">
-            <div class="macro-bar" :style="{ width: Math.min(100, totals.protein / (macroGoals.protein||1) * 100) + '%', background: '#6c63ff' }"></div>
-          </div>
-          <div class="macro-label">🥩 {{ t('nutrition.protein') }}</div>
-          <div class="macro-val">{{ totals.protein.toFixed(0) }}/{{ macroGoals.protein }}g</div>
-        </div>
-        <div class="macro-item">
-          <div class="macro-bar-wrap">
-            <div class="macro-bar" :style="{ width: Math.min(100, totals.carbs / (macroGoals.carbs||1) * 100) + '%', background: '#f59e0b' }"></div>
-          </div>
-          <div class="macro-label">🍞 {{ t('nutrition.carbs') }}</div>
-          <div class="macro-val">{{ totals.carbs.toFixed(0) }}/{{ macroGoals.carbs }}g</div>
-        </div>
-        <div class="macro-item">
-          <div class="macro-bar-wrap">
-            <div class="macro-bar" :style="{ width: Math.min(100, totals.fat / (macroGoals.fat||1) * 100) + '%', background: '#10b981' }"></div>
-          </div>
-          <div class="macro-label">🫒 {{ t('nutrition.fat') }}</div>
-          <div class="macro-val">{{ totals.fat.toFixed(0) }}/{{ macroGoals.fat }}g</div>
+      <div class="macros">
+        <div v-for="m in macroItems" :key="m.label" class="macro-item">
+          <div class="macro-bar-wrap"><div class="macro-bar" :style="{ width: m.pct + '%', background: m.color }"></div></div>
+          <div class="macro-footer"><span>{{ m.label }}</span><span style="font-family:var(--font-mono);font-size:11px">{{ m.val }}/{{ m.goal }}g</span></div>
         </div>
       </div>
     </div>
 
-    <!-- Recommendation -->
     <div class="card rec-card">
       <div class="card-title">💡 {{ t('nutrition.recommendation') }}</div>
-      <div class="rec-text">{{ recommendation }}</div>
+      <p style="font-size:13px;line-height:1.6">{{ recommendation }}</p>
     </div>
 
-    <!-- Meals -->
     <div v-for="mealType in mealTypes" :key="mealType" class="card">
-      <div class="card-title">
-        {{ mealIcon(mealType) }} {{ t(`nutrition.meals.${mealType}`) }}
-        <span class="meal-cal">{{ mealCalories(mealType) }} kcal</span>
+      <div class="meal-header">
+        <span style="font-weight:600;font-size:15px">{{ mealIcon(mealType) }} {{ t(`nutrition.meals.${mealType}`) }}</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--warning)">{{ mealCalories(mealType) }} kcal</span>
       </div>
       <div class="meal-list">
         <div v-for="log in logsByMeal(mealType)" :key="log.id" class="meal-item">
-          <div class="meal-info">
-            <div class="meal-name">{{ log.meal_name }}</div>
-            <div class="meal-macros">P:{{ log.protein_g }}g U:{{ log.carbs_g }}g Y:{{ log.fat_g }}g</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ log.meal_name }}</div>
+            <div style="font-size:11px;color:var(--text-dim);font-family:var(--font-mono)">P:{{ log.protein_g }}g U:{{ log.carbs_g }}g Y:{{ log.fat_g }}g</div>
           </div>
-          <div class="meal-right">
-            <span class="meal-kcal">{{ log.calories }} kcal</span>
-            <button class="del-btn" @click="nutrition.deleteLog(log.id)">✕</button>
-          </div>
+          <span style="font-family:var(--font-mono);font-size:12px;color:var(--accent-light);flex-shrink:0">{{ log.calories }} kcal</span>
+          <button class="del-btn" @click="nutrition.deleteLog(log.id)">✕</button>
         </div>
-        <div v-if="!logsByMeal(mealType).length" class="empty-meal">Hali qo'shilmagan</div>
+        <div v-if="!logsByMeal(mealType).length" style="font-size:13px;color:var(--text-dim);text-align:center;padding:12px">Hali qo'shilmagan</div>
       </div>
-      <button class="btn btn-outline btn-sm" style="margin-top:10px;width:100%" @click="openAdd(mealType)">+ Qo'shish</button>
+      <button class="btn btn-outline btn-sm" style="width:100%;margin-top:10px" @click="openAdd(mealType)">+ Qo'shish</button>
     </div>
 
     <!-- Modal -->
     <div v-if="showModal" class="modal-overlay" @click.self="showModal=false">
       <div class="modal">
-        <div class="modal-header">
-          <div class="modal-title">{{ mealIcon(addForm.meal_type) }} {{ t(`nutrition.meals.${addForm.meal_type}`) }}</div>
-          <button class="modal-close" @click="showModal=false">✕</button>
+        <div style="font-family:var(--font-display);font-weight:700;font-size:17px;margin-bottom:16px">
+          {{ mealIcon(addForm.meal_type) }} {{ t(`nutrition.meals.${addForm.meal_type}`) }}
         </div>
+
+        <!-- AI Rasm tahlil -->
+        <div class="ai-section">
+          <div class="ai-label">📸 Rasm orqali aniqlash (AI)</div>
+          <div class="ai-upload-area" @click="triggerCamera" @dragover.prevent @drop.prevent="onDrop">
+            <div v-if="!previewImg" class="ai-placeholder">
+              <span style="font-size:36px">📷</span>
+              <span style="font-size:13px;color:var(--text-dim)">Rasm yoki foto tanlang</span>
+              <span style="font-size:11px;color:var(--text-dim)">Kamera yoki galereya</span>
+            </div>
+            <div v-else class="ai-preview-wrap">
+              <img :src="previewImg" class="ai-preview-img" />
+              <button class="ai-clear-btn" @click.stop="clearImage">✕</button>
+            </div>
+          </div>
+          <input ref="fileInput" type="file" accept="image/*" capture="environment" style="display:none" @change="onFileChange" />
+        </div>
+
+        <div class="divider"><span>yoki qo'lda kiriting</span></div>
+
         <div class="form-group">
           <label class="label">Ovqat nomi</label>
-          <input v-model="addForm.meal_name" class="input" placeholder="Masalan: Palov, Tuxum..." />
+          <input v-model="addForm.meal_name" class="input" placeholder="Palov, Tuxum..." />
         </div>
-        <div class="inputs-grid">
-          <div class="form-group">
-            <label class="label">Kaloriya</label>
-            <input v-model.number="addForm.calories" class="input" type="number" placeholder="350" />
-          </div>
-          <div class="form-group">
-            <label class="label">Oqsil (g)</label>
-            <input v-model.number="addForm.protein_g" class="input" type="number" placeholder="20" />
-          </div>
-          <div class="form-group">
-            <label class="label">Uglevod (g)</label>
-            <input v-model.number="addForm.carbs_g" class="input" type="number" placeholder="40" />
-          </div>
-          <div class="form-group">
-            <label class="label">Yog' (g)</label>
-            <input v-model.number="addForm.fat_g" class="input" type="number" placeholder="15" />
+        <div class="modal-grid">
+          <div class="form-group"><label class="label">Kaloriya</label><input v-model.number="addForm.calories" class="input" type="number" placeholder="350" /></div>
+          <div class="form-group"><label class="label">Oqsil (g)</label><input v-model.number="addForm.protein_g" class="input" type="number" placeholder="20" /></div>
+          <div class="form-group"><label class="label">Uglevod (g)</label><input v-model.number="addForm.carbs_g" class="input" type="number" placeholder="40" /></div>
+          <div class="form-group"><label class="label">Yog' (g)</label><input v-model.number="addForm.fat_g" class="input" type="number" placeholder="15" /></div>
+        </div>
+        <div style="margin-top:12px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-dim)">⚡ Tez tanlash</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <button v-for="f in quickFoods" :key="f.name" class="chip" style="font-size:12px;padding:5px 10px" @click="applyQuick(f)">{{ f.name }}</button>
           </div>
         </div>
-
-        <div class="quick-foods">
-          <div class="quick-title">⚡ Tez tanlash</div>
-          <div class="quick-list">
-            <button v-for="f in quickFoods" :key="f.name" class="chip" @click="applyQuick(f)">{{ f.name }}</button>
-          </div>
-        </div>
-
-        <div class="modal-actions">
+        <div style="display:flex;gap:8px;margin-top:16px">
           <button class="btn btn-primary" style="flex:1" @click="saveLog">Saqlash</button>
           <button class="btn btn-outline" @click="showModal=false">Bekor</button>
         </div>
       </div>
     </div>
 
-    <div style="height:80px"></div>
+    <div style="height:20px"></div>
   </div>
 </template>
 
@@ -150,136 +121,164 @@ const today = new Date()
 const todayStr = today.toISOString().split('T')[0]
 const months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr']
 const todayFormatted = `${today.getDate()} ${months[today.getMonth()]}`
-
-const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack']
-function mealIcon(type) { return { breakfast:'🌅', lunch:'☀️', dinner:'🌙', snack:'🍎' }[type] || '🍽️' }
+const mealTypes = ['breakfast','lunch','dinner','snack']
+function mealIcon(t) { return {breakfast:'🌅',lunch:'☀️',dinner:'🌙',snack:'🍎'}[t]||'🍽️' }
 
 const dailyCalGoal = computed(() => nutrition.calcDailyCalories(auth.profile) || 2000)
 const macroGoals = computed(() => nutrition.getMacroRecommendation(dailyCalGoal.value, 'maintain'))
 const totals = computed(() => nutrition.getDayTotals())
-
 const calPercent = computed(() => dailyCalGoal.value ? (totals.value.calories / dailyCalGoal.value) * 100 : 0)
 const calRingColor = computed(() => {
-  if (calPercent.value > 110) return '#ef4444'
-  if (calPercent.value >= 90) return '#00d4aa'
-  if (calPercent.value >= 60) return '#f59e0b'
-  return '#6c63ff'
+  const p = calPercent.value
+  if (p > 110) return '#ef4444'; if (p >= 90) return '#00d4aa'; if (p >= 60) return '#f59e0b'; return '#6c63ff'
 })
-
+const macroItems = computed(() => [
+  { label: '🥩 Oqsil', val: totals.value.protein.toFixed(0), goal: macroGoals.value.protein, pct: Math.min(100, totals.value.protein/(macroGoals.value.protein||1)*100), color: '#6c63ff' },
+  { label: '🍞 Uglevod', val: totals.value.carbs.toFixed(0), goal: macroGoals.value.carbs, pct: Math.min(100, totals.value.carbs/(macroGoals.value.carbs||1)*100), color: '#f59e0b' },
+  { label: '🫒 Yog\'', val: totals.value.fat.toFixed(0), goal: macroGoals.value.fat, pct: Math.min(100, totals.value.fat/(macroGoals.value.fat||1)*100), color: '#10b981' },
+])
 const recommendation = computed(() => {
   const rem = dailyCalGoal.value - totals.value.calories
   if (rem < 0) return `⚠️ Kunlik me'yordan ${Math.abs(rem)} kcal oshib ketdingiz.`
   if (rem < 200) return `✅ Ajoyib! Faqat ${rem} kcal qoldi.`
   if (rem < 500) return `💪 Yaxshi! Yana ${rem} kcal iste'mol qilishingiz mumkin.`
-  return `🍽️ Bugun ${rem} kcal iste'mol qilishingiz kerak.`
+  return `🍽️ Bugun yana ${rem} kcal iste'mol qilishingiz kerak.`
 })
 
-// Xavfsiz filter — logs undefined bo'lsa ham ishlasin
 function logsByMeal(type) {
-  if (!nutrition.logs || !Array.isArray(nutrition.logs)) return []
-  return nutrition.logs.filter(l => l.meal_type === type)
+  const logs = nutrition.logs
+  if (!logs || !Array.isArray(logs)) return []
+  return logs.filter(l => l.meal_type === type)
 }
-function mealCalories(type) { return logsByMeal(type).reduce((s, l) => s + (l.calories || 0), 0) }
+function mealCalories(type) { return logsByMeal(type).reduce((s,l) => s+(l.calories||0), 0) }
 
 const showModal = ref(false)
-const addForm = ref({ meal_name: '', meal_type: 'breakfast', calories: null, protein_g: null, carbs_g: null, fat_g: null })
-
+const addForm = ref({ meal_name:'', meal_type:'breakfast', calories:null, protein_g:null, carbs_g:null, fat_g:null })
 function openAdd(mealType) {
-  addForm.value = { meal_name: '', meal_type: mealType, calories: null, protein_g: null, carbs_g: null, fat_g: null }
+  addForm.value = { meal_name:'', meal_type:mealType, calories:null, protein_g:null, carbs_g:null, fat_g:null }
+  clearImage()
   showModal.value = true
 }
 
-const quickFoods = [
-  { name: 'Tuxum (1 dona)', calories: 78, protein_g: 6, carbs_g: 1, fat_g: 5 },
-  { name: 'Non (1 tilim)', calories: 80, protein_g: 3, carbs_g: 15, fat_g: 1 },
-  { name: 'Guruch (100g)', calories: 130, protein_g: 3, carbs_g: 28, fat_g: 0 },
-  { name: 'Tovuq (100g)', calories: 165, protein_g: 31, carbs_g: 0, fat_g: 4 },
-  { name: 'Palov (200g)', calories: 320, protein_g: 12, carbs_g: 40, fat_g: 12 },
-  { name: 'Olma', calories: 52, protein_g: 0, carbs_g: 14, fat_g: 0 },
-  { name: 'Sut (200ml)', calories: 120, protein_g: 6, carbs_g: 10, fat_g: 5 },
-  { name: 'Yogurt (150g)', calories: 90, protein_g: 8, carbs_g: 10, fat_g: 2 },
-  { name: 'Banan', calories: 89, protein_g: 1, carbs_g: 23, fat_g: 0 },
-  { name: 'Somsa', calories: 280, protein_g: 10, carbs_g: 30, fat_g: 14 },
-]
+// === AI IMAGE ===
+const fileInput = ref(null)
+const previewImg = ref(null)
+const imageBase64 = ref(null)
+const aiLoading = ref(false)
+const aiError = ref('')
+const aiSuccess = ref('')
 
-function applyQuick(food) {
-  addForm.value.meal_name = food.name
-  addForm.value.calories = food.calories
-  addForm.value.protein_g = food.protein_g
-  addForm.value.carbs_g = food.carbs_g
-  addForm.value.fat_g = food.fat_g
+function triggerCamera() { fileInput.value?.click() }
+function onFileChange(e) { const f = e.target.files[0]; if (f) processFile(f) }
+function onDrop(e) { const f = e.dataTransfer.files[0]; if (f) processFile(f) }
+
+function processFile(file) {
+  aiError.value = ''; aiSuccess.value = ''
+  const reader = new FileReader()
+  reader.onload = ev => {
+    previewImg.value = ev.target.result
+    imageBase64.value = ev.target.result.split(',')[1]
+  }
+  reader.readAsDataURL(file)
 }
 
-async function saveLog() {
-  if (!addForm.value.meal_name) return
+function clearImage() {
+  previewImg.value = null; imageBase64.value = null
+  aiError.value = ''; aiSuccess.value = ''
+  if (fileInput.value) fileInput.value.value = ''
+}
+
+async function analyzeImage() {
+  if (!imageBase64.value) return
+  aiLoading.value = true; aiError.value = ''; aiSuccess.value = ''
   try {
-    await nutrition.addLog({ ...addForm.value, log_date: todayStr })
-    showModal.value = false
-  } catch(e) {
-    console.error('saveLog error:', e)
+    const mediaType = previewImg.value.startsWith('data:image/png') ? 'image/png'
+      : previewImg.value.startsWith('data:image/webp') ? 'image/webp'
+      : 'image/jpeg'
+
+    const res = await fetch('/api/analyze-food', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64: imageBase64.value, mediaType })
+    })
+    const r = await res.json()
+    if (!res.ok) throw new Error(r.error || 'Xato')
+    addForm.value.meal_name = r.meal_name || ''
+    addForm.value.calories = r.calories || null
+    addForm.value.protein_g = r.protein_g || null
+    addForm.value.carbs_g = r.carbs_g || null
+    addForm.value.fat_g = r.fat_g || null
+    aiSuccess.value = `"${r.meal_name}" aniqlandi — ${r.calories} kcal`
+  } catch (e) {
+    aiError.value = e.message ||
+    aiError.value = 'Tahlil qilib bo\'lmadi. Qo\'lda kiriting.'
+  } finally {
+    aiLoading.value = false
   }
 }
 
-onMounted(async () => {
-  await nutrition.fetchLogs(todayStr)
-})
+const quickFoods = [
+  { name:'Tuxum',calories:78,protein_g:6,carbs_g:1,fat_g:5 },
+  { name:'Non',calories:80,protein_g:3,carbs_g:15,fat_g:1 },
+  { name:'Guruch 100g',calories:130,protein_g:3,carbs_g:28,fat_g:0 },
+  { name:'Tovuq 100g',calories:165,protein_g:31,carbs_g:0,fat_g:4 },
+  { name:'Palov 200g',calories:320,protein_g:12,carbs_g:40,fat_g:12 },
+  { name:'Olma',calories:52,protein_g:0,carbs_g:14,fat_g:0 },
+  { name:'Sut 200ml',calories:120,protein_g:6,carbs_g:10,fat_g:5 },
+  { name:'Banan',calories:89,protein_g:1,carbs_g:23,fat_g:0 },
+]
+function applyQuick(f) {
+  addForm.value.meal_name = f.name
+  addForm.value.calories = f.calories
+  addForm.value.protein_g = f.protein_g
+  addForm.value.carbs_g = f.carbs_g
+  addForm.value.fat_g = f.fat_g
+}
+async function saveLog() {
+  if (!addForm.value.meal_name) return
+  await nutrition.addLog({ ...addForm.value, log_date: todayStr })
+  showModal.value = false
+}
+
+onMounted(() => nutrition.fetchLogs(todayStr))
 </script>
 
 <style scoped>
-.page { padding: 16px; max-width: 600px; margin: 0 auto; }
-.page-header { margin-bottom: 16px; }
-.page-header h1 { font-family: var(--font-display); font-weight: 800; font-size: 22px; }
-.today-date { font-size: 13px; color: var(--text-dim); }
-
-.cal-ring-wrap { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
-.cal-info { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 8px; }
-.cal-goal-row { display: flex; justify-content: space-between; align-items: center; }
-.cal-label { font-size: 12px; color: var(--text-dim); }
-.cal-val { font-family: var(--font-mono); font-weight: 700; font-size: 13px; }
-
-.macros-row { display: flex; flex-direction: column; gap: 8px; }
-.macro-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-bottom: 3px; }
+.page { padding: 20px 16px; max-width: 700px; margin: 0 auto; }
+@media(min-width:768px){ .page { padding: 32px 40px; max-width: 860px; } }
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-family: var(--font-display); font-weight: 800; font-size: 24px; }
+.cal-top { display: flex; align-items: center; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; }
+.cal-svg { width: 100px; height: 100px; flex-shrink: 0; color: var(--text); }
+.cal-info { flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 8px; }
+.ci-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-dim); }
+.ci-row b { color: var(--text); font-family: var(--font-mono); font-size: 13px; }
+.macros { display: flex; flex-direction: column; gap: 10px; }
+.macro-bar-wrap { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
 .macro-bar { height: 100%; border-radius: 3px; transition: width 0.5s; }
-.macro-label { font-size: 11px; color: var(--text-dim); }
-.macro-val { font-family: var(--font-mono); font-size: 11px; color: var(--text); float: right; }
-
+.macro-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-dim); }
 .rec-card { border-left: 3px solid var(--accent); }
-.rec-text { font-size: 13px; line-height: 1.6; }
-
-.meal-cal { margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--warning); }
+.meal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .meal-list { display: flex; flex-direction: column; gap: 6px; }
-.meal-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--surface2); border-radius: var(--radius-sm); gap: 8px; }
-.meal-info { flex: 1; min-width: 0; }
-.meal-name { font-size: 14px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.meal-macros { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); }
-.meal-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.meal-kcal { font-family: var(--font-mono); font-size: 12px; color: var(--accent-light); }
-.del-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 4px; }
-.empty-meal { font-size: 13px; color: var(--text-dim); text-align: center; padding: 12px; }
-
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.75);
-  display: flex; align-items: flex-end; justify-content: center;
-  z-index: 200; backdrop-filter: blur(4px);
-}
-.modal {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius) var(--radius) 0 0;
-  padding: 20px 16px 32px; width: 100%; max-width: 520px;
-  max-height: 88vh; overflow-y: auto;
-}
-.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.modal-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; }
-.modal-close { background: none; border: none; font-size: 18px; color: var(--text-dim); cursor: pointer; padding: 4px 8px; }
-.inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.quick-foods { margin-top: 14px; }
-.quick-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dim); }
-.quick-list { display: flex; flex-wrap: wrap; gap: 6px; }
-.modal-actions { display: flex; gap: 8px; margin-top: 16px; }
-
-@media (max-width: 360px) {
-  .cal-ring-wrap { flex-direction: column; }
-  .inputs-grid { grid-template-columns: 1fr; }
-}
+.meal-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--surface2); border-radius: var(--radius-sm); }
+.del-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 4px 6px; flex-shrink: 0; border-radius: var(--radius-xs); }
+.del-btn:hover { background: rgba(239,68,68,0.1); color: var(--danger); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: flex-end; justify-content: center; z-index: 300; backdrop-filter: blur(4px); }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; padding: 20px 16px 32px; width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ai-section { margin-bottom: 4px; }
+.ai-label { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--accent-light); }
+.ai-upload-area { border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 20px 16px; text-align: center; cursor: pointer; transition: border-color 0.2s; min-height: 110px; display: flex; align-items: center; justify-content: center; }
+.ai-upload-area:hover { border-color: var(--accent); }
+.ai-placeholder { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.ai-preview-wrap { position: relative; width: 100%; }
+.ai-preview-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; }
+.ai-clear-btn { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.ai-loading { display: flex; align-items: center; gap: 10px; padding: 10px; color: var(--text-dim); font-size: 13px; }
+.ai-spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-error { color: #ef4444; font-size: 13px; padding: 8px; background: rgba(239,68,68,0.1); border-radius: var(--radius-xs); margin-top: 6px; }
+.ai-success { color: #10b981; font-size: 13px; padding: 8px; background: rgba(16,185,129,0.1); border-radius: var(--radius-xs); margin-top: 6px; }
+.divider { display: flex; align-items: center; gap: 10px; margin: 14px 0; color: var(--text-dim); font-size: 12px; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 </style>

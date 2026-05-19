@@ -22,7 +22,7 @@
           <circle cx="30" cy="30" r="24" fill="none" :stroke="ringColor" stroke-width="5"
             stroke-linecap="round" :stroke-dasharray="150.8"
             :stroke-dashoffset="150.8 - (150.8 * completion / 100)"
-            transform="rotate(-90 30 30)" style="transition: stroke-dashoffset 0.6s"/>
+            transform="rotate(-90 30 30)" style="transition:stroke-dashoffset 0.6s"/>
           <text x="30" y="35" text-anchor="middle" fill="currentColor" font-size="11" font-family="Space Mono" font-weight="700">{{ completion }}%</text>
         </svg>
       </div>
@@ -46,24 +46,28 @@
       </div>
     </div>
 
-    <!-- Tasks loading -->
+    <!-- Loading -->
     <div v-if="loadingTasks" class="loading-state">
       <div class="loading-spinner"></div>
       <span>Yuklanmoqda...</span>
     </div>
 
     <template v-else>
-      <!-- Template tasks (shared) -->
+      <!-- Template tasks -->
       <div v-for="(group, cat) in groupedTemplateTasks" :key="'t-' + cat" class="card">
         <div class="card-title" :style="{ color: catColor(cat) }">
           {{ catIcon(cat) }} {{ catLabel(cat) }}
         </div>
         <div class="task-list">
-          <div v-for="task in group" :key="task.id"
+          <div
+            v-for="task in group" :key="task.id"
             class="task-item"
             :class="{ done: doneIds.includes(task.id) }"
             @click="handleTaskClick(task.id)">
-            <div class="task-check" :style="doneIds.includes(task.id) ? { background: catColor(cat), borderColor: catColor(cat) } : { borderColor: catColor(cat) }">
+            <div class="task-check"
+              :style="doneIds.includes(task.id)
+                ? { background: catColor(cat), borderColor: catColor(cat) }
+                : { borderColor: catColor(cat) }">
               <span v-if="doneIds.includes(task.id)">✓</span>
             </div>
             <span class="task-icon-emoji">{{ task.icon }}</span>
@@ -77,24 +81,45 @@
       <div class="card my-tasks-card">
         <div class="card-title">
           <span>✏️ Mening shaxsiy vazifalarim</span>
-          <span class="my-tasks-count badge badge-accent">{{ myTasks.length }}</span>
+          <span class="badge badge-accent" style="margin-left:auto">{{ myTasks.length }}</span>
         </div>
 
         <div v-if="myTasks.length" class="task-list" style="margin-bottom:12px">
-          <div v-for="task in myTasks" :key="task.id" class="task-item task-item-personal"
+          <div
+            v-for="task in myTasks" :key="task.id"
+            class="task-item task-item-personal"
             :class="{ done: doneIds.includes(task.id) }">
+
+            <!-- Checkbox -->
             <div class="task-check personal-check"
-              :style="doneIds.includes(task.id) ? { background: '#6c63ff', borderColor: '#6c63ff' } : { borderColor: '#6c63ff' }"
+              :style="doneIds.includes(task.id)
+                ? { background: '#6c63ff', borderColor: '#6c63ff' }
+                : { borderColor: '#6c63ff' }"
               @click="handleTaskClick(task.id)">
               <span v-if="doneIds.includes(task.id)">✓</span>
             </div>
+
+            <!-- Content -->
             <span class="task-icon-emoji" @click="handleTaskClick(task.id)">{{ task.icon }}</span>
             <span class="task-name" @click="handleTaskClick(task.id)">{{ task.title }}</span>
             <span class="task-pts" @click="handleTaskClick(task.id)">+{{ task.points }}</span>
-            <!-- Edit + Delete buttons -->
+
+            <!-- ALWAYS VISIBLE action buttons -->
             <div class="task-actions">
-              <button class="task-action-btn edit-btn" @click.stop="openEdit(task)" title="Tahrirlash">✎</button>
-              <button class="task-action-btn delete-btn" @click.stop="deleteMyTask(task)" title="O'chirish">✕</button>
+              <button class="task-btn task-edit-btn" @click.stop="openEdit(task)" title="Tahrirlash">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button class="task-btn task-delete-btn" @click.stop="confirmDelete(task)" title="O'chirish">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6"/>
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -105,12 +130,12 @@
 
         <!-- Add task form -->
         <div v-if="showAddTask" class="add-task-form">
-          <div class="form-section-label">Yangi vazifa</div>
-          <div class="add-task-row">
+          <div class="add-task-form-label">Yangi vazifa</div>
+          <div class="add-row">
             <input v-model="newTask.icon" class="input icon-input" placeholder="✅" maxlength="2" />
-            <input v-model="newTask.title" class="input" placeholder="Vazifa nomi..." @keyup.enter="saveTask" style="flex:1" />
+            <input v-model="newTask.title" class="input" placeholder="Vazifa nomi..." @keyup.enter="saveTask" style="flex:1" ref="newTitleRef" />
           </div>
-          <div class="add-task-row" style="margin-top:8px">
+          <div class="add-row" style="margin-top:8px">
             <select v-model="newTask.category" class="select" style="flex:1">
               <option value="study">📚 O'quv</option>
               <option value="sport">💪 Sport</option>
@@ -121,7 +146,7 @@
             </select>
             <input v-model.number="newTask.points" class="input" type="number" placeholder="Ball" style="width:80px" min="1" max="100" />
           </div>
-          <div class="add-task-actions">
+          <div class="add-actions">
             <button class="btn btn-primary btn-sm" :disabled="saving" @click="saveTask">
               <span v-if="saving">...</span>
               <span v-else>+ Qo'shish</span>
@@ -130,63 +155,92 @@
           </div>
         </div>
 
-        <button v-else class="btn btn-outline btn-full add-task-trigger" @click="showAddTask = true">
+        <button v-else class="btn btn-outline btn-full add-trigger" @click="openAddTask">
           + Shaxsiy vazifa qo'shish
         </button>
       </div>
     </template>
 
-    <!-- Login Modal -->
-    <div v-if="showLoginPrompt" class="modal-overlay" @click.self="showLoginPrompt=false">
-      <div class="login-prompt">
-        <div class="lp-icon">🔐</div>
-        <h3>Kirish kerak</h3>
-        <p>Vazifalarni belgilash uchun akkauntga kiring</p>
-        <router-link to="/auth" class="btn btn-primary btn-full" @click="showLoginPrompt=false">Kirish / Ro'yxatdan o'tish</router-link>
-        <button class="btn btn-outline btn-full" @click="showLoginPrompt=false">Keyinroq</button>
+    <!-- ===== DELETE CONFIRM MODAL ===== -->
+    <Teleport to="body">
+      <div v-if="deletingTask" class="modal-overlay" @click.self="deletingTask = null">
+        <div class="confirm-modal">
+          <div class="confirm-icon">🗑️</div>
+          <h3>Vazifani o'chirish</h3>
+          <p>
+            <strong>"{{ deletingTask.title }}"</strong> vazifasini
+            o'chirmoqchimisiz? Bu amal qaytarib bo'lmaydi.
+          </p>
+          <div class="confirm-actions">
+            <button class="btn btn-danger" :disabled="deleting" @click="doDelete">
+              <span v-if="deleting">O'chirilmoqda...</span>
+              <span v-else>🗑️ O'chirish</span>
+            </button>
+            <button class="btn btn-outline" @click="deletingTask = null">Bekor</button>
+          </div>
+        </div>
       </div>
-    </div>
+    </Teleport>
 
-    <!-- Edit Task Modal -->
-    <div v-if="editingTask" class="modal-overlay" @click.self="cancelEdit">
-      <div class="edit-modal">
-        <div class="edit-modal-header">
-          <h3>✎ Vazifani tahrirlash</h3>
-          <button class="modal-close-btn" @click="cancelEdit">✕</button>
-        </div>
-        <div class="edit-modal-body">
-          <div class="add-task-row">
-            <input v-model="editingTask.icon" class="input icon-input" placeholder="✅" maxlength="2" />
-            <input v-model="editingTask.title" class="input" placeholder="Vazifa nomi..." @keyup.enter="saveEdit" style="flex:1" ref="editTitleRef" />
+    <!-- ===== EDIT MODAL ===== -->
+    <Teleport to="body">
+      <div v-if="editingTask" class="modal-overlay" @click.self="cancelEdit">
+        <div class="edit-modal">
+          <div class="edit-modal-header">
+            <h3>✎ Vazifani tahrirlash</h3>
+            <button class="close-btn" @click="cancelEdit">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
-          <div class="add-task-row" style="margin-top:10px">
-            <select v-model="editingTask.category" class="select" style="flex:1">
-              <option value="study">📚 O'quv</option>
-              <option value="sport">💪 Sport</option>
-              <option value="language">🌍 Til</option>
-              <option value="self">🌟 O'z ustida</option>
-              <option value="nutrition">🍽️ Ovqat</option>
-              <option value="custom">✏️ Boshqa</option>
-            </select>
-            <input v-model.number="editingTask.points" class="input" type="number" placeholder="Ball" style="width:80px" min="1" max="100" />
+          <div class="edit-modal-body">
+            <div class="add-row">
+              <input v-model="editingTask.icon" class="input icon-input" placeholder="✅" maxlength="2" />
+              <input v-model="editingTask.title" class="input" placeholder="Vazifa nomi..." @keyup.enter="saveEdit" style="flex:1" ref="editTitleRef" />
+            </div>
+            <div class="add-row" style="margin-top:10px">
+              <select v-model="editingTask.category" class="select" style="flex:1">
+                <option value="study">📚 O'quv</option>
+                <option value="sport">💪 Sport</option>
+                <option value="language">🌍 Til</option>
+                <option value="self">🌟 O'z ustida</option>
+                <option value="nutrition">🍽️ Ovqat</option>
+                <option value="custom">✏️ Boshqa</option>
+              </select>
+              <input v-model.number="editingTask.points" class="input" type="number" placeholder="Ball" style="width:80px" min="1" max="100" />
+            </div>
           </div>
-        </div>
-        <div class="edit-modal-footer">
-          <button class="btn btn-primary" :disabled="editSaving" @click="saveEdit">
-            <span v-if="editSaving">Saqlanmoqda...</span>
-            <span v-else>💾 Saqlash</span>
-          </button>
-          <button class="btn btn-outline" @click="cancelEdit">Bekor</button>
+          <div class="edit-modal-footer">
+            <button class="btn btn-primary" :disabled="editSaving" @click="saveEdit">
+              <span v-if="editSaving">Saqlanmoqda...</span>
+              <span v-else>💾 Saqlash</span>
+            </button>
+            <button class="btn btn-outline" @click="cancelEdit">Bekor</button>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
+
+    <!-- ===== LOGIN PROMPT MODAL ===== -->
+    <Teleport to="body">
+      <div v-if="showLoginPrompt" class="modal-overlay" @click.self="showLoginPrompt=false">
+        <div class="login-prompt">
+          <div class="lp-icon">🔐</div>
+          <h3>Kirish kerak</h3>
+          <p>Vazifalarni belgilash uchun akkauntga kiring</p>
+          <router-link to="/auth" class="btn btn-primary btn-full" @click="showLoginPrompt=false">
+            Kirish / Ro'yxatdan o'tish
+          </router-link>
+          <button class="btn btn-outline btn-full" @click="showLoginPrompt=false">Keyinroq</button>
+        </div>
+      </div>
+    </Teleport>
 
     <div style="height:20px"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from '../supabase.js'
 import { useAuthStore } from '../stores/auth.js'
 
@@ -202,20 +256,27 @@ const isLoggedIn = computed(() => authStore.isLoggedIn)
 const firstName = computed(() => authStore.profile?.full_name?.split(' ')[0] || 'Mehmon')
 const challengeDays = computed(() => authStore.profile?.challenge_duration || 90)
 
-const allTasks = ref([])
-const myTasks = ref([])
-const doneIds = ref([])
+// State
+const allTasks   = ref([])
+const myTasks    = ref([])
+const doneIds    = ref([])
 const loadingTasks = ref(true)
 const showLoginPrompt = ref(false)
 const showAddTask = ref(false)
 const saving = ref(false)
 const newTask = ref({ title: '', category: 'custom', points: 10, icon: '✅' })
+const newTitleRef = ref(null)
 
-// Edit
+// Edit state
 const editingTask = ref(null)
 const editSaving = ref(false)
 const editTitleRef = ref(null)
 
+// Delete state
+const deletingTask = ref(null)
+const deleting = ref(false)
+
+// Computed
 const taskList = computed(() => [...allTasks.value, ...myTasks.value])
 
 const dayPoints = computed(() =>
@@ -224,21 +285,16 @@ const dayPoints = computed(() =>
     return sum + (t?.points || 0)
   }, 0)
 )
-
 const completedCount = computed(() => doneIds.value.length)
-
 const completion = computed(() => {
   const total = taskList.value.reduce((s, t) => s + (t.points || 0), 0)
-  if (!total) return 0
-  return Math.round((dayPoints.value / total) * 100)
+  return total ? Math.round((dayPoints.value / total) * 100) : 0
 })
-
 const ringColor = computed(() => {
   if (completion.value >= 80) return '#00d4aa'
   if (completion.value >= 50) return '#f59e0b'
   return '#6c63ff'
 })
-
 const groupedTemplateTasks = computed(() => {
   const g = {}
   for (const task of allTasks.value) {
@@ -248,32 +304,31 @@ const groupedTemplateTasks = computed(() => {
   return g
 })
 
-function catLabel(cat) {
-  return { study: "O'quv", sport: 'Sport', language: 'Til', self: "O'z ustida", nutrition: 'Ovqat', custom: 'Boshqa' }[cat] || cat
+// Helpers
+function catLabel(c) {
+  return { study:"O'quv", sport:'Sport', language:'Til', self:"O'z ustida", nutrition:'Ovqat', custom:'Boshqa' }[c] || c
 }
-function catIcon(cat) {
-  return { study: '📚', sport: '💪', language: '🌍', self: '🌟', nutrition: '🍽️', custom: '✏️' }[cat] || '✅'
+function catIcon(c) {
+  return { study:'📚', sport:'💪', language:'🌍', self:'🌟', nutrition:'🍽️', custom:'✏️' }[c] || '✅'
 }
-function catColor(cat) {
-  return { study: '#6c63ff', sport: '#10b981', language: '#3b82f6', self: '#8b5cf6', nutrition: '#f59e0b', custom: '#ec4899' }[cat] || '#6c63ff'
+function catColor(c) {
+  return { study:'#6c63ff', sport:'#10b981', language:'#3b82f6', self:'#8b5cf6', nutrition:'#f59e0b', custom:'#ec4899' }[c] || '#6c63ff'
 }
 
+// Load
 async function loadTasks() {
   loadingTasks.value = true
   try {
     const uid = authStore.user?.id
     const { data: templates } = await supabase
       .from('tasks').select('*')
-      .eq('is_active', true).eq('is_template', true)
-      .order('sort_order')
+      .eq('is_active', true).eq('is_template', true).order('sort_order')
     allTasks.value = templates || []
 
     if (uid) {
-      // Faqat shu foydalanuvchining shaxsiy vazifalari
       const { data: personal } = await supabase
         .from('tasks').select('*')
-        .eq('is_active', true).eq('is_template', false)
-        .eq('user_id', uid)
+        .eq('is_active', true).eq('is_template', false).eq('user_id', uid)
         .order('created_at', { ascending: false })
       myTasks.value = personal || []
 
@@ -282,13 +337,11 @@ async function loadTasks() {
         .eq('user_id', uid).eq('completed_date', todayStr)
       doneIds.value = comp?.map(c => c.task_id) || []
     }
-  } catch (e) {
-    console.error(e)
-  } finally {
-    loadingTasks.value = false
-  }
+  } catch (e) { console.error(e) }
+  finally { loadingTasks.value = false }
 }
 
+// Toggle completion
 async function handleTaskClick(taskId) {
   if (!authStore.user?.id) { showLoginPrompt.value = true; return }
   const uid = authStore.user.id
@@ -303,44 +356,55 @@ async function handleTaskClick(taskId) {
   }
 }
 
+// Add task
+function openAddTask() {
+  showAddTask.value = true
+  nextTick(() => newTitleRef.value?.focus())
+}
 async function saveTask() {
   if (!newTask.value.title.trim() || !authStore.user?.id) return
   saving.value = true
   try {
-    const icon = newTask.value.icon || catIcon(newTask.value.category)
     const { data, error } = await supabase.from('tasks').insert({
       title: newTask.value.title.trim(),
       category: newTask.value.category,
       points: newTask.value.points || 10,
-      icon,
+      icon: newTask.value.icon || catIcon(newTask.value.category),
       user_id: authStore.user.id,
       is_template: false,
       is_active: true,
-    }).select().single()
-    if (!error && data) { myTasks.value.unshift(data); cancelAdd() }
+    }).select()
+    if (!error && data) { myTasks.value.unshift(data?.[0] || data); cancelAdd() }
   } catch (e) { console.error(e) }
   finally { saving.value = false }
 }
-
 function cancelAdd() {
   showAddTask.value = false
   newTask.value = { title: '', category: 'custom', points: 10, icon: '✅' }
 }
 
-async function deleteMyTask(task) {
-  if (!confirm(`"${task.title}" vazifasini o'chirmoqchimisiz?`)) return
-  await supabase.from('tasks').update({ is_active: false }).eq('id', task.id)
-  myTasks.value = myTasks.value.filter(t => t.id !== task.id)
-  doneIds.value = doneIds.value.filter(id => id !== task.id)
+// Delete (with confirm modal)
+function confirmDelete(task) {
+  deletingTask.value = task
+}
+async function doDelete() {
+  if (!deletingTask.value) return
+  deleting.value = true
+  try {
+    await supabase.from('tasks').update({ is_active: false }).eq('id', deletingTask.value.id)
+    myTasks.value = myTasks.value.filter(t => t.id !== deletingTask.value.id)
+    doneIds.value = doneIds.value.filter(id => id !== deletingTask.value.id)
+    deletingTask.value = null
+  } catch (e) { console.error(e) }
+  finally { deleting.value = false }
 }
 
+// Edit
 function openEdit(task) {
   editingTask.value = { ...task }
   nextTick(() => editTitleRef.value?.focus())
 }
-
 function cancelEdit() { editingTask.value = null }
-
 async function saveEdit() {
   if (!editingTask.value?.title?.trim()) return
   editSaving.value = true
@@ -351,7 +415,6 @@ async function saveEdit() {
       category: editingTask.value.category,
       points: editingTask.value.points || 10,
     }).eq('id', editingTask.value.id).eq('user_id', authStore.user.id)
-
     if (!error) {
       const idx = myTasks.value.findIndex(t => t.id === editingTask.value.id)
       if (idx !== -1) myTasks.value[idx] = { ...myTasks.value[idx], ...editingTask.value }
@@ -361,13 +424,89 @@ async function saveEdit() {
   finally { editSaving.value = false }
 }
 
-onMounted(() => loadTasks())
+// ===== BUDILNIK (ALARM) =====
+const alarms = ref(JSON.parse(localStorage.getItem('gf_alarms') || '[]'))
+const showAlarmForm = ref(false)
+const ringingAlarm = ref(null)
+const newAlarm = ref({ time: '07:00', label: "Uyg\'onish vaqti", repeat: 'daily' })
+let alarmInterval = null
+
+function saveAlarms() { localStorage.setItem('gf_alarms', JSON.stringify(alarms.value)) }
+
+function addAlarm() {
+  if (!newAlarm.value.time) return
+  alarms.value.push({ id: Date.now(), time: newAlarm.value.time, label: newAlarm.value.label || 'Eslatma', repeat: newAlarm.value.repeat, active: true })
+  saveAlarms()
+  showAlarmForm.value = false
+  newAlarm.value = { time: '07:00', label: "Uyg\'onish vaqti", repeat: 'daily' }
+  requestNotificationPermission()
+}
+
+function removeAlarm(id) { alarms.value = alarms.value.filter(a => a.id !== id); saveAlarms() }
+function toggleAlarm(alarm) { alarm.active = !alarm.active; saveAlarms() }
+function repeatLabel(r) { return { once: 'Bir marta', daily: 'Har kuni', weekdays: 'Ish kunlari' }[r] || r }
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission()
+}
+
+function playAlarmSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    const beep = (f, s, d) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value = f; o.type = 'sine'; g.gain.setValueAtTime(0.3, ctx.currentTime+s); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+s+d); o.start(ctx.currentTime+s); o.stop(ctx.currentTime+s+d) }
+    beep(880,0,0.3); beep(1100,0.4,0.3); beep(880,0.8,0.3); beep(1100,1.2,0.3); beep(1320,1.6,0.5)
+  } catch(e) {}
+}
+
+function showNotification(alarm) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('⏰ GoalFlow', { body: `${alarm.time} — ${alarm.label}`, requireInteraction: true })
+  }
+}
+
+function checkAlarms() {
+  const now = new Date()
+  const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+  const day = now.getDay()
+  alarms.value.forEach(alarm => {
+    if (!alarm.active || alarm._fired) return
+    if (alarm.time !== hhmm) return
+    if (alarm.repeat === 'weekdays' && (day === 0 || day === 6)) return
+    alarm._fired = true
+    ringingAlarm.value = alarm
+    playAlarmSound()
+    showNotification(alarm)
+    if (alarm.repeat === 'once') { alarm.active = false; saveAlarms() }
+  })
+  alarms.value.forEach(a => { if (a._fired && a.time !== hhmm) delete a._fired })
+}
+
+function dismissAlarm() { ringingAlarm.value = null }
+
+function snoozeAlarm() {
+  if (!ringingAlarm.value) return
+  const now = new Date(); now.setMinutes(now.getMinutes() + 5)
+  const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+  alarms.value.push({ id: Date.now(), time: t, label: `😴 ${ringingAlarm.value.label}`, repeat: 'once', active: true })
+  saveAlarms(); ringingAlarm.value = null
+}
+
+onMounted(() => {
+  loadTasks()
+  requestNotificationPermission()
+  alarmInterval = setInterval(checkAlarms, 10000)
+  checkAlarms()
+})
+
+onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
+
 </script>
 
 <style scoped>
-.page { padding: 20px 16px; max-width: 680px; margin: 0 auto; }
+.page { padding: 20px 16px; max-width: 680px; margin: 0 auto; width: 100%; }
 @media (min-width: 768px) { .page { padding: 32px 40px; max-width: 780px; } }
 
+/* ── Guest Banner ── */
 .guest-banner {
   display: flex; align-items: center; justify-content: space-between;
   background: rgba(108,99,255,0.08); border: 1px solid rgba(108,99,255,0.2);
@@ -376,12 +515,14 @@ onMounted(() => loadTasks())
 .guest-text span { font-weight: 600; font-size: 14px; display: block; margin-bottom: 2px; }
 .guest-text p { font-size: 12px; color: var(--text-dim); margin: 0; }
 
+/* ── Header ── */
 .today-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .greeting { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin-bottom: 4px; }
 .today-date { font-size: 13px; color: var(--text-dim); }
 @media (min-width: 768px) { .greeting { font-size: 28px; } }
 .today-ring svg text { fill: var(--text); }
 
+/* ── Quick Stats ── */
 .quick-stats {
   display: flex; align-items: center;
   background: var(--surface); border: 1px solid var(--border);
@@ -393,22 +534,26 @@ onMounted(() => loadTasks())
 .qs-label { font-size: 11px; color: var(--text-dim); }
 .qs-divider { width: 1px; height: 32px; background: var(--border); }
 
+/* ── Loading ── */
 .loading-state { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 40px; color: var(--text-dim); }
 .loading-spinner { width: 20px; height: 20px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── Task List ── */
 .task-list { display: flex; flex-direction: column; gap: 6px; }
 
 .task-item {
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-  background: var(--surface2); border-radius: var(--radius-sm);
-  cursor: pointer; transition: all 0.2s;
-  border: 1px solid transparent; user-select: none;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; background: var(--surface2);
+  border-radius: var(--radius-sm); cursor: pointer;
+  transition: all 0.18s; border: 1px solid transparent; user-select: none;
 }
 .task-item:hover { border-color: var(--border2); background: var(--surface3); }
 .task-item.done { opacity: 0.55; background: rgba(0,212,170,0.05); border-color: rgba(0,212,170,0.12); }
+
+/* Personal task: cursor default because actions are separate */
 .task-item-personal { border: 1px solid rgba(108,99,255,0.1); cursor: default; }
-.task-item-personal:hover { border-color: rgba(108,99,255,0.25); background: var(--surface3); }
+.task-item-personal:hover { border-color: rgba(108,99,255,0.22); background: var(--surface3); }
 
 .task-check {
   width: 20px; height: 20px; border-radius: 6px; border: 2px solid;
@@ -418,84 +563,139 @@ onMounted(() => loadTasks())
 .personal-check { cursor: pointer; }
 
 .task-icon-emoji { font-size: 16px; flex-shrink: 0; }
-.task-name { flex: 1; font-size: 14px; color: var(--text); }
+.task-name { flex: 1; font-size: 14px; color: var(--text); min-width: 0; word-break: break-word; }
 .task-item.done .task-name { text-decoration: line-through; color: var(--text-dim); }
 .task-pts { font-family: var(--font-mono); font-size: 11px; color: var(--accent-light); flex-shrink: 0; }
 
-/* Action buttons */
-.task-actions { display: flex; gap: 3px; flex-shrink: 0; opacity: 0; transition: opacity 0.2s; }
-.task-item-personal:hover .task-actions { opacity: 1; }
+/* ── Always-visible action buttons ── */
+.task-actions { display: flex; gap: 4px; flex-shrink: 0; }
 
-.task-action-btn {
-  background: none; border: none; cursor: pointer;
-  font-size: 13px; padding: 4px 7px;
-  border-radius: var(--radius-xs); transition: all 0.2s; color: var(--text-dim);
+.task-btn {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 7px; cursor: pointer;
+  transition: all 0.18s; flex-shrink: 0;
 }
-.edit-btn:hover { background: rgba(108,99,255,0.15); color: var(--accent-light); }
-.delete-btn:hover { background: rgba(239,68,68,0.1); color: var(--danger); }
+.task-edit-btn {
+  background: rgba(108,99,255,0.1);
+  color: var(--accent-light);
+}
+.task-edit-btn:hover {
+  background: rgba(108,99,255,0.22);
+  color: var(--accent-light);
+  transform: scale(1.08);
+}
+.task-delete-btn {
+  background: rgba(239,68,68,0.08);
+  color: #ef4444;
+}
+.task-delete-btn:hover {
+  background: rgba(239,68,68,0.18);
+  color: #dc2626;
+  transform: scale(1.08);
+}
 
+[data-theme="light"] .task-edit-btn { background: rgba(108,99,255,0.08); }
+[data-theme="light"] .task-delete-btn { background: rgba(239,68,68,0.06); }
+
+/* ── My Tasks Card ── */
 .my-tasks-card { border: 1px solid rgba(108,99,255,0.15); }
-.my-tasks-count { margin-left: auto; }
-
 .empty-my-tasks {
   text-align: center; padding: 16px; color: var(--text-dim); font-size: 13px;
   border: 1px dashed var(--border2); border-radius: var(--radius-sm); margin-bottom: 12px;
 }
 
-.form-section-label { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+/* ── Add task form ── */
+.add-task-form-label { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
 .add-task-form { background: var(--surface2); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 4px; border: 1px solid var(--border2); }
-.add-task-row { display: flex; gap: 8px; }
+.add-row { display: flex; gap: 8px; }
 .icon-input { width: 56px; flex-shrink: 0; text-align: center; font-size: 18px; padding: 10px 8px; }
-.add-task-actions { display: flex; gap: 8px; margin-top: 10px; }
+.add-actions { display: flex; gap: 8px; margin-top: 10px; }
+.add-trigger { border-style: dashed; color: var(--accent-light); border-color: rgba(108,99,255,0.3); }
+.add-trigger:hover { background: rgba(108,99,255,0.06); border-color: rgba(108,99,255,0.5); }
+[data-theme="light"] .add-trigger { color: var(--accent); }
 
-.add-task-trigger { border-style: dashed; color: var(--accent-light); border-color: rgba(108,99,255,0.3); }
-.add-task-trigger:hover { background: rgba(108,99,255,0.06); border-color: rgba(108,99,255,0.5); }
-[data-theme="light"] .add-task-trigger { color: var(--accent); }
-
+/* ── Modal overlay (Teleport to body — no scoping issue) ── */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.75);
   display: flex; align-items: center; justify-content: center;
-  z-index: 300; backdrop-filter: blur(6px); padding: 20px;
+  z-index: 500; backdrop-filter: blur(8px); padding: 20px;
 }
+
+/* ── Delete Confirm Modal ── */
+.confirm-modal {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 32px 28px;
+  width: 100%; max-width: 380px;
+  text-align: center; display: flex; flex-direction: column; gap: 14px;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.2s ease;
+}
+.confirm-icon { font-size: 48px; line-height: 1; }
+.confirm-modal h3 { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
+.confirm-modal p { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+.confirm-modal p strong { color: var(--text); }
+.confirm-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+
+/* ── Edit Modal ── */
+.edit-modal {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius); width: 100%; max-width: 460px;
+  box-shadow: var(--shadow-lg); overflow: hidden;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.edit-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px 16px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(108,99,255,0.07), rgba(0,212,170,0.03));
+}
+.edit-modal-header h3 { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+.close-btn {
+  width: 30px; height: 30px; border-radius: 8px; border: none;
+  background: var(--surface3); color: var(--text-dim); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all 0.18s;
+}
+.close-btn:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
+.edit-modal-body { padding: 20px; }
+.edit-modal-footer {
+  display: flex; gap: 8px; padding: 16px 20px;
+  border-top: 1px solid var(--border); background: var(--surface2);
+}
+
+/* ── Login Prompt ── */
 .login-prompt {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 32px 24px;
   width: 100%; max-width: 360px;
   text-align: center; display: flex; flex-direction: column; gap: 12px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg); animation: modalIn 0.2s ease;
 }
 .lp-icon { font-size: 48px; }
 .login-prompt h3 { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
 .login-prompt p { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
 
-/* Edit Modal */
-.edit-modal {
-  background: var(--surface); border: 1px solid var(--border2);
-  border-radius: var(--radius); width: 100%; max-width: 460px;
-  box-shadow: var(--shadow-lg); overflow: hidden;
-  animation: slideUp 0.2s ease;
+/* ── Budilnik ── */
+.alarm-card { border: 1px solid rgba(255,200,0,0.2); }
+.alarm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.alarm-form { background: var(--surface2); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px; border: 1px solid var(--border2); }
+.alarm-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.alarm-item:last-child { border-bottom: none; }
+.alarm-toggle { cursor: pointer; padding: 4px; }
+.alarm-dot { width: 20px; height: 20px; border-radius: 50%; background: var(--surface3); border: 2px solid var(--border2); transition: all 0.2s; }
+.alarm-dot.active { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px rgba(108,99,255,0.5); }
+.alarm-time { font-family: var(--font-mono); font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+.alarm-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.alarm-ring-modal {
+  background: var(--surface); border: 2px solid var(--accent);
+  border-radius: var(--radius); padding: 32px 28px;
+  width: 100%; max-width: 340px; text-align: center;
+  animation: ring-pulse 0.5s infinite alternate;
 }
-@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-
-.edit-modal-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 20px 16px; border-bottom: 1px solid var(--border);
-  background: linear-gradient(135deg, rgba(108,99,255,0.08), rgba(0,212,170,0.04));
-}
-.edit-modal-header h3 { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
-
-.modal-close-btn {
-  background: var(--surface3); border: none; color: var(--text-dim);
-  cursor: pointer; width: 28px; height: 28px; border-radius: 8px;
-  font-size: 13px; transition: all 0.2s;
-  display: flex; align-items: center; justify-content: center;
-}
-.modal-close-btn:hover { background: rgba(239,68,68,0.15); color: var(--danger); }
-
-.edit-modal-body { padding: 20px; }
-
-.edit-modal-footer {
-  display: flex; gap: 8px; padding: 16px 20px;
-  border-top: 1px solid var(--border); background: var(--surface2);
-}
+@keyframes ring-pulse { from { box-shadow: 0 0 20px rgba(108,99,255,0.3); } to { box-shadow: 0 0 40px rgba(108,99,255,0.8); } }
+@keyframes ring { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
 </style>
