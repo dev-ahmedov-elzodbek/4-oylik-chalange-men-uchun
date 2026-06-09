@@ -53,24 +53,24 @@
           <div class="form-group">
             <label class="label">Kategoriya</label>
             <select v-model="tForm.category" class="select">
-              <option value="study">📚 O'quv</option>
-              <option value="sport">💪 Sport</option>
-              <option value="language">🌍 Til</option>
-              <option value="self">🌟 O'z ustida</option>
+              <option value="study"> O'quv</option>
+              <option value="sport"> Sport</option>
+              <option value="language"> Til</option>
+              <option value="self"> O'z ustida</option>
               <option value="nutrition">🍽️ Ovqat</option>
               <option value="custom">✏️ Boshqa</option>
             </select>
           </div>
           <div class="form-group">
             <label class="label">Ikonka</label>
-            <input v-model="tForm.icon" class="input" placeholder="✅" />
+            <input v-model="tForm.icon" class="input" placeholder="✓" />
           </div>
           <div class="form-group">
             <label class="label">Ball</label>
             <input v-model.number="tForm.points" class="input" type="number" />
           </div>
         </div>
-        <div v-if="formError" class="error-msg">⚠️ {{ formError }}</div>
+        <div v-if="formError" class="error-msg">{{ formError }}</div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-primary btn-sm" :disabled="saving" @click="saveTemplate">
             {{ saving ? 'Saqlanmoqda...' : 'Saqlash' }}
@@ -92,10 +92,10 @@
       <div class="card">
         <div class="card-title">ℹ️ Admin huquqlari</div>
         <div class="info-list">
-          <div class="info-row">✅ Namuna vazifalar yaratish va tahrirlash</div>
-          <div class="info-row">✅ O'z namunalarini o'chirish</div>
-          <div class="info-row">❌ Boshqa foydalanuvchilarni ko'rish — faqat SuperAdmin</div>
-          <div class="info-row">❌ Rol o'zgartirish — faqat SuperAdmin</div>
+          <div class="info-row">Namuna vazifalar yaratish va tahrirlash</div>
+          <div class="info-row">O'z namunalarini o'chirish</div>
+          <div class="info-row">✕ Boshqa foydalanuvchilarni ko'rish — faqat SuperAdmin</div>
+          <div class="info-row">✕ Rol o'zgartirish — faqat SuperAdmin</div>
         </div>
       </div>
     </div>
@@ -119,16 +119,16 @@ const showTemplateForm = ref(false)
 const editingTemplate = ref(null)
 const saving = ref(false)
 const formError = ref('')
-const tForm = ref({ title: '', category: 'study', icon: '✅', points: 10 })
+const tForm = ref({ title: '', category: 'study', icon: '✓', points: 10 })
 
 const adminTabs = [
   { id: 'templates', icon: '📋', label: 'Namunalar' },
-  { id: 'stats', icon: '📊', label: 'Statistika' },
+  { id: 'stats', icon: '', label: 'Statistika' },
 ]
 
 const myStats = computed(() => [
   { icon: '📋', label: 'Jami namunalar', value: myTemplateTasks.value.length, color: '#f59e0b' },
-  { icon: '✅', label: 'Faol namunalar', value: myTemplateTasks.value.filter(t => t.is_active !== false).length, color: '#00d4aa' },
+  { icon: '✓', label: 'Faol namunalar', value: myTemplateTasks.value.filter(t => t.is_active !== false).length, color: '#00d4aa' },
 ])
 
 function editTemplate(task) {
@@ -170,7 +170,7 @@ function cancelTemplate() {
   showTemplateForm.value = false
   editingTemplate.value = null
   formError.value = ''
-  tForm.value = { title: '', category: 'study', icon: '✅', points: 10 }
+  tForm.value = { title: '', category: 'study', icon: '✓', points: 10 }
 }
 
 async function goLogout() {

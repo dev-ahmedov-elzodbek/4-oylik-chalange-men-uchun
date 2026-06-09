@@ -143,7 +143,7 @@
  
         <!-- Kaloriya tavsiyasi -->
         <div v-if="calorieEstimate" class="calorie-card">
-          <div class="cal-title">🔥 Kunlik kaloriya tavsiyasi</div>
+          <div class="cal-title"> Kunlik kaloriya tavsiyasi</div>
           <div class="cal-value">{{ calorieEstimate }} <span>kcal/kun</span></div>
           <div class="cal-macros">
             <div>🥩 Oqsil: ~{{ macros.protein }}g</div>
@@ -298,10 +298,10 @@ const subjects = [
   { key: 'chemistry', icon: '🧪', label: 'Kimyo' },
   { key: 'biology', icon: '🧬', label: 'Biologiya' },
   { key: 'history', icon: '📜', label: 'Tarix' },
-  { key: 'english', icon: '🌍', label: 'Ingliz tili' },
+  { key: 'english', icon: '', label: 'Ingliz tili' },
   { key: 'uzbek', icon: '🇺🇿', label: 'Ona tili' },
-  { key: 'programming', icon: '💻', label: 'Dasturlash' },
-  { key: 'economics', icon: '📈', label: 'Iqtisodiyot' },
+  { key: 'programming', icon: '', label: 'Dasturlash' },
+  { key: 'economics', icon: '', label: 'Iqtisodiyot' },
   { key: 'geography', icon: '🗺️', label: 'Geografiya' },
 ]
  

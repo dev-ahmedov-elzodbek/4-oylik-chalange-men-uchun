@@ -10,7 +10,7 @@
       <div class="clock-time">{{ currentTime }}</div>
       <div class="clock-date">{{ currentDate }}</div>
       <div class="clock-status" :class="notifGranted ? 'status-ok' : 'status-warn'">
-        {{ notifGranted ? '🔔 Bildirishnomalar yoqilgan' : '🔕 Bildirishnomalarni yoqing' }}
+        {{ notifGranted ? 'Bildirishnomalar yoqilgan' : 'Bildirishnomalarni yoqing' }}
       </div>
       <button v-if="!notifGranted" class="btn btn-outline btn-sm" style="margin-top:10px" @click="requestNotif">
         Yoqish
@@ -94,7 +94,7 @@
           ✓ To'xtatish
         </button>
         <button class="btn btn-outline ringing-btn" style="margin-top:8px" @click="snooze">
-          💤 5 daqiqa keyinroq
+          5 daqiqa keyinroq
         </button>
       </div>
     </div>
@@ -160,7 +160,7 @@ function snooze() {
   const snoozeTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
   // Vaqtinchalik 5 daqiqa keyingi alarm
   setTimeout(() => {
-    alarm.activeAlarm.value = { time: snoozeTime, label: '💤 Snooze' }
+    alarm.activeAlarm.value = { time: snoozeTime, label: 'Snooze' }
     alarm.playAlarmSound()
   }, 5 * 60 * 1000)
 }

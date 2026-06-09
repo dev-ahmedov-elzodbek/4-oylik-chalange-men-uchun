@@ -4,7 +4,7 @@
     <!-- Guest Banner -->
     <div v-if="!isLoggedIn" class="guest-banner">
       <div class="guest-text">
-        <span>👋 Xush kelibsiz!</span>
+        <span>Xush kelibsiz!</span>
         <p>Vazifalarni belgilash uchun kiring</p>
       </div>
       <router-link to="/auth" class="btn btn-primary btn-sm">Kirish</router-link>
@@ -13,7 +13,7 @@
     <!-- Header -->
     <div class="today-header">
       <div>
-        <div class="greeting">Xayrli kun, {{ firstName }}! 👋</div>
+        <div class="greeting">Xayrli kun, {{ firstName }}!</div>
         <div class="today-date">{{ todayFormatted }}</div>
       </div>
       <div class="today-ring">
@@ -36,7 +36,7 @@
       </div>
       <div class="qs-divider"></div>
       <div class="qs-item">
-        <span class="qs-val" style="color:var(--warning)">🔥 {{ challengeDays }}</span>
+        <span class="qs-val" style="color:var(--warning)">{{ challengeDays }}</span>
         <span class="qs-label">kun challenge</span>
       </div>
       <div class="qs-divider"></div>
@@ -137,10 +137,10 @@
           </div>
           <div class="add-row" style="margin-top:8px">
             <select v-model="newTask.category" class="select" style="flex:1">
-              <option value="study">📚 O'quv</option>
-              <option value="sport">💪 Sport</option>
-              <option value="language">🌍 Til</option>
-              <option value="self">🌟 O'z ustida</option>
+              <option value="study">O'quv</option>
+              <option value="sport">Sport</option>
+              <option value="language">Til</option>
+              <option value="self">O'z ustida</option>
               <option value="nutrition">🍽️ Ovqat</option>
               <option value="custom">✏️ Boshqa</option>
             </select>
@@ -199,10 +199,10 @@
             </div>
             <div class="add-row" style="margin-top:10px">
               <select v-model="editingTask.category" class="select" style="flex:1">
-                <option value="study">📚 O'quv</option>
-                <option value="sport">💪 Sport</option>
-                <option value="language">🌍 Til</option>
-                <option value="self">🌟 O'z ustida</option>
+                <option value="study">O'quv</option>
+                <option value="sport">Sport</option>
+                <option value="language">Til</option>
+                <option value="self">O'z ustida</option>
                 <option value="nutrition">🍽️ Ovqat</option>
                 <option value="custom">✏️ Boshqa</option>
               </select>
@@ -309,7 +309,7 @@ function catLabel(c) {
   return { study:"O'quv", sport:'Sport', language:'Til', self:"O'z ustida", nutrition:'Ovqat', custom:'Boshqa' }[c] || c
 }
 function catIcon(c) {
-  return { study:'📚', sport:'💪', language:'🌍', self:'🌟', nutrition:'🍽️', custom:'✏️' }[c] || '✅'
+  return { study:'O'quv', sport:'Sport', language:'Til', self:'Shaxs', nutrition:'Ovqat', custom:'Boshqa' }[c] || '✅'
 }
 function catColor(c) {
   return { study:'#6c63ff', sport:'#10b981', language:'#3b82f6', self:'#8b5cf6', nutrition:'#f59e0b', custom:'#ec4899' }[c] || '#6c63ff'
@@ -517,7 +517,7 @@ onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
 
 /* ── Header ── */
 .today-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-.greeting { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin-bottom: 4px; }
+.greeting { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin-bottom: 4px; color: var(--text); }
 .today-date { font-size: 13px; color: var(--text-dim); }
 @media (min-width: 768px) { .greeting { font-size: 28px; } }
 .today-ring svg text { fill: var(--text); }
