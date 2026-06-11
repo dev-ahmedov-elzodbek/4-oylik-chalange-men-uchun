@@ -36,7 +36,7 @@
 
         <!-- Step 2: Email + parol -->
         <div v-if="step === 2">
-          <div class="step-badge">✅ Kalit tasdiqlandi</div>
+          <div class="step-badge"><span v-html="icons.success" style="display:inline-flex;align-items:center;margin-right:6px"></span>Kalit tasdiqlandi</div>
           <div class="form-group">
             <label class="label">Email</label>
             <input v-model="email" class="input" type="email" placeholder="admin@example.com" @keyup.enter="doLogin" />
@@ -70,6 +70,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
+import { icons } from '../icons.js'
 
 const router = useRouter()
 const auth = useAuthStore()

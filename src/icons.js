@@ -88,4 +88,48 @@ export const icons = {
     <path d="M7 12c1-3 4-4 5-2M17 12c-1-3-4-4-5-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
     <circle cx="12" cy="9" r="1.5" fill="currentColor" fill-opacity="0.4"/>
   </svg>`,
+
+  // Verification/Badge
+  verified: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M10 13l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M17 6.5a2.5 2.5 0 0 1 0 3.5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.2"/>
+  </svg>`,
+
+  // Success badge
+  success: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="12" cy="12" r="6" fill="currentColor" fill-opacity="0.25"/>
+    <path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`,
+
+  // Checkmark plain
+  checkmark: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`,
+
+  // Trophy/Award
+  trophy: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 9c0-2 1-3 3-3h6c2 0 3 1 3 3v2c0 1-1 2-2 2h-8c-1 0-2-1-2-2V9z" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M9 13v4c0 1 1 2 2 2h2c1 0 2-1 2-2v-4" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M9 17h6M10.5 9V7M13.5 9V7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>`,
+
+  // Settings/Gear
+  settings: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="2.5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M12 1v3M12 20v3M23 12h-3M4 12H1M19.77 4.23l-2.12 2.12M6.35 17.65l-2.12 2.12M19.77 19.77l-2.12-2.12M6.35 6.35L4.23 4.23" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>`,
+
+  // Edit/Pencil outline
+  edit: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  </svg>`,
+
+  // Warning/Alert
+  warning: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2L2 20h20L12 2z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M12 9v4M12 17v0.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </svg>`,
 }

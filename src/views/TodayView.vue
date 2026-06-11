@@ -69,7 +69,7 @@
               :style="doneIds.includes(task.id)
                 ? { background: catColor(cat), borderColor: catColor(cat) }
                 : { borderColor: catColor(cat) }">
-              <span v-if="doneIds.includes(task.id)">✓</span>
+              <span v-if="doneIds.includes(task.id)" v-html="icons.checkmark" style="display:inline-flex;align-items:center;justify-content:center"></span>
             </div>
             <span class="task-icon-emoji">{{ task.icon }}</span>
             <span class="task-name">{{ task.title }}</span>
@@ -98,7 +98,7 @@
                 ? { background: '#6c63ff', borderColor: '#6c63ff' }
                 : { borderColor: '#6c63ff' }"
               @click="handleTaskClick(task.id)">
-              <span v-if="doneIds.includes(task.id)">✓</span>
+              <span v-if="doneIds.includes(task.id)" v-html="icons.checkmark" style="display:inline-flex;align-items:center;justify-content:center"></span>
             </div>
 
             <!-- Content -->
@@ -134,7 +134,7 @@
         <div v-if="showAddTask" class="add-task-form">
           <div class="add-task-form-label">Yangi vazifa</div>
           <div class="add-row">
-            <input v-model="newTask.icon" class="input icon-input" placeholder="✅" maxlength="2" />
+            <input v-model="newTask.icon" class="input icon-input" placeholder="Icon" maxlength="2" />
             <input v-model="newTask.title" class="input" placeholder="Vazifa nomi..." @keyup.enter="saveTask" style="flex:1" ref="newTitleRef" />
           </div>
           <div class="add-row" style="margin-top:8px">
@@ -143,8 +143,8 @@
               <option value="sport">Sport</option>
               <option value="language">Til</option>
               <option value="self">O'z ustida</option>
-              <option value="nutrition">🍽️ Ovqat</option>
-              <option value="custom">✏️ Boshqa</option>
+              <option value="nutrition">Ovqat</option>
+              <option value="custom">Boshqa</option>
             </select>
             <input v-model.number="newTask.points" class="input" type="number" placeholder="Ball" style="width:80px" min="1" max="100" />
           </div>
@@ -196,7 +196,7 @@
           </div>
           <div class="edit-modal-body">
             <div class="add-row">
-              <input v-model="editingTask.icon" class="input icon-input" placeholder="✅" maxlength="2" />
+              <input v-model="editingTask.icon" class="input icon-input" placeholder="Icon" maxlength="2" />
               <input v-model="editingTask.title" class="input" placeholder="Vazifa nomi..." @keyup.enter="saveEdit" style="flex:1" ref="editTitleRef" />
             </div>
             <div class="add-row" style="margin-top:10px">
@@ -205,8 +205,8 @@
                 <option value="sport">Sport</option>
                 <option value="language">Til</option>
                 <option value="self">O'z ustida</option>
-                <option value="nutrition">🍽️ Ovqat</option>
-                <option value="custom">✏️ Boshqa</option>
+                <option value="nutrition">Ovqat</option>
+                <option value="custom">Boshqa</option>
               </select>
               <input v-model.number="editingTask.points" class="input" type="number" placeholder="Ball" style="width:80px" min="1" max="100" />
             </div>
@@ -267,7 +267,7 @@ const loadingTasks = ref(true)
 const showLoginPrompt = ref(false)
 const showAddTask = ref(false)
 const saving = ref(false)
-const newTask = ref({ title: '', category: 'custom', points: 10, icon: '✅' })
+const newTask = ref({ title: '', category: 'custom', points: 10, icon: '✔️' })
 const newTitleRef = ref(null)
 
 // Edit state
@@ -391,7 +391,7 @@ async function saveTask() {
 }
 function cancelAdd() {
   showAddTask.value = false
-  newTask.value = { title: '', category: 'custom', points: 10, icon: '✅' }
+  newTask.value = { title: '', category: 'custom', points: 10, icon: '✔️' }
 }
 
 // Delete (with confirm modal)
@@ -422,7 +422,7 @@ async function saveEdit() {
   try {
     const { error } = await supabase.from('tasks').update({
       title: editingTask.value.title.trim(),
-      icon: editingTask.value.icon || '✅',
+      icon: editingTask.value.icon || '✔️',
       category: editingTask.value.category,
       points: editingTask.value.points || 10,
     }).eq('id', editingTask.value.id).eq('user_id', authStore.user.id)

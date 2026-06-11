@@ -14,7 +14,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">🏆 Challenge progress</div>
+      <div class="card-title"><span v-html="icons.trophy" style="display:inline-block;margin-right:8px"></span>Challenge progress</div>
       <div class="challenge-info">
         <div class="ch-row"><span class="ch-label">Boshlanish</span><span class="ch-val">{{ auth.profile?.challenge_start || '—' }}</span></div>
         <div class="ch-row"><span class="ch-label">Tugash</span><span class="ch-val">{{ auth.profile?.challenge_end || '—' }}</span></div>
@@ -39,7 +39,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">⚙️ Sozlamalar</div>
+      <div class="card-title"><span v-html="icons.settings" style="display:inline-block;margin-right:8px"></span>Sozlamalar</div>
       <div class="settings-list">
         <div class="setting-item">
           <span>Til</span>
@@ -55,7 +55,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">✏️ Profilni tahrirlash</div>
+      <div class="card-title"><span v-html="icons.edit" style="display:inline-block;margin-right:8px"></span>Profilni tahrirlash</div>
       <div class="form-group">
         <label class="label">To'liq ism</label>
         <input v-model="editForm.full_name" class="input" />
@@ -89,6 +89,7 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
+import { icons } from '../icons.js'
 
 const { t, locale } = useI18n()
 const router = useRouter()

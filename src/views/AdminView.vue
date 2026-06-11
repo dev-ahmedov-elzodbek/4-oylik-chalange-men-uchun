@@ -73,7 +73,7 @@
           </div>
           <div class="form-group">
             <label class="label">Ikonka</label>
-            <input v-model="tForm.icon" class="input" placeholder="✓" />
+            <input v-model="tForm.icon" class="input" placeholder="Icon" />
           </div>
           <div class="form-group">
             <label class="label">Ball</label>
