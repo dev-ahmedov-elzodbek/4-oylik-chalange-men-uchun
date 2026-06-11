@@ -3,7 +3,7 @@
     <div class="page-header">
       <div class="header-row">
         <div>
-          <h1> SuperAdmin Panel</h1>
+          <h1>👑 SuperAdmin Panel</h1>
           <p class="header-sub">Salom, {{ auth.profile?.full_name || auth.profile?.email }}</p>
         </div>
         <button class="btn btn-outline btn-sm" @click="goLogout">Chiqish</button>
@@ -32,7 +32,7 @@
       <p>Ma'lumotlar yuklanmoqda...</p>
     </div>
     <div v-if="error" class="error-card">
-      {{ error }}
+      ⚠️ {{ error }}
       <button class="btn btn-outline btn-sm" style="margin-top:8px" @click="loadData">Qayta yuklash</button>
     </div>
 
@@ -62,7 +62,7 @@
                 <option value="superadmin">superadmin</option>
               </select>
               <button class="btn-icon btn-edit" @click="openEditModal(user)" title="Tahrirlash">✏️</button>
-              <button v-if="user.id !== auth.user?.id" class="btn-icon btn-delete" @click="deleteUser(user.id)" title="O'chirish"></button>
+              <button v-if="user.id !== auth.user?.id" class="btn-icon btn-delete" @click="deleteUser(user.id)" title="O'chirish">🗑️</button>
             </div>
           </div>
           <div v-if="!filteredUsers.length && !loading" class="empty-state">Foydalanuvchi topilmadi</div>
@@ -117,7 +117,7 @@
     <div v-if="activeTab === 'stats' && !loading">
       <div class="stats-grid">
         <div class="card">
-          <div class="card-title"> Yo'nalishlar bo'yicha</div>
+          <div class="card-title">📊 Yo'nalishlar bo'yicha</div>
           <div class="dir-bars">
             <div v-for="(count, dir) in directionStats" :key="dir" class="dir-row">
               <div class="dir-label">{{ dir }}</div>
@@ -150,12 +150,12 @@
       <!-- Top summary cards -->
       <div class="user-stats-summary">
         <div class="usm-card">
-          <div class="usm-icon"></div>
+          <div class="usm-icon">🏆</div>
           <div class="usm-val" style="color: #f59e0b">{{ topUser?.full_name || '—' }}</div>
           <div class="usm-label">Eng faol foydalanuvchi</div>
         </div>
         <div class="usm-card">
-          <div class="usm-icon">✓</div>
+          <div class="usm-icon">✅</div>
           <div class="usm-val" style="color: #00d4aa">{{ totalCompletions }}</div>
           <div class="usm-label">Jami bajarilgan vazifalar</div>
         </div>
@@ -165,7 +165,7 @@
           <div class="usm-label">Bugun faol</div>
         </div>
         <div class="usm-card">
-          <div class="usm-icon"></div>
+          <div class="usm-icon">⭐</div>
           <div class="usm-val" style="color: #ec4899">{{ avgCompletionRate }}%</div>
           <div class="usm-label">O'rtacha bajarilish</div>
         </div>
@@ -232,7 +232,7 @@
             </div>
             <div class="ust-cell">
               <span class="ust-streak">
-                {{ u.streak > 0 ? ' ' + u.streak : '—' }}
+                {{ u.streak > 0 ? '🔥 ' + u.streak : '—' }}
               </span>
             </div>
             <div class="ust-cell">
@@ -356,15 +356,15 @@ const editModal = ref({ open: false, id: null, full_name: '', email: '', directi
 const tabs = [
   { id: 'users', icon: '👥', label: 'Foydalanuvchilar' },
   { id: 'admins', icon: '🛡️', label: 'Adminlar' },
-  { id: 'stats', icon: '', label: 'Statistika' },
-  { id: 'user_stats', icon: '', label: 'Faollik' },
+  { id: 'stats', icon: '📊', label: 'Statistika' },
+  { id: 'user_stats', icon: '📈', label: 'Faollik' },
 ]
 
 const sortOptions = [
-  { key: 'completions', label: 'Vazifalar' },
-  { key: 'totalPoints', label: ' Ball' },
+  { key: 'completions', label: '✅ Vazifalar' },
+  { key: 'totalPoints', label: '⭐ Ball' },
   { key: 'lastActive', label: '📅 Faollik' },
-  { key: 'streak', label: ' Streak' },
+  { key: 'streak', label: '🔥 Streak' },
 ]
 
 const filteredUsers = computed(() => {
@@ -382,7 +382,7 @@ const adminUsers = computed(() => users.value.filter(u => u.role === 'admin' || 
 const globalStats = computed(() => [
   { icon: '👥', label: 'Jami foydalanuvchi', value: users.value.length, color: '#6c63ff' },
   { icon: '🛡️', label: 'Adminlar', value: users.value.filter(u => u.role === 'admin').length, color: '#f59e0b' },
-  { icon: '✓', label: 'Onboarding', value: users.value.filter(u => u.onboarding_done).length, color: '#00d4aa' },
+  { icon: '✅', label: 'Onboarding', value: users.value.filter(u => u.onboarding_done).length, color: '#00d4aa' },
   { icon: '📋', label: 'Namunalar', value: allTemplates.value.length, color: '#ec4899' },
 ])
 

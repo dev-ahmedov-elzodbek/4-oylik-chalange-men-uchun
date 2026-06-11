@@ -71,7 +71,7 @@
                 : { borderColor: catColor(cat) }">
               <span v-if="doneIds.includes(task.id)" v-html="icons.checkmark" style="display:inline-flex;align-items:center;justify-content:center"></span>
             </div>
-            <span class="task-icon-emoji">{{ task.icon }}</span>
+            <span class="task-icon-emoji" v-html="getTaskIcon(task.icon)"></span>
             <span class="task-name">{{ task.title }}</span>
             <span class="task-pts">+{{ task.points }}</span>
           </div>
@@ -102,7 +102,7 @@
             </div>
 
             <!-- Content -->
-            <span class="task-icon-emoji" @click="handleTaskClick(task.id)">{{ task.icon }}</span>
+            <span class="task-icon-emoji" v-html="getTaskIcon(task.icon)" @click="handleTaskClick(task.id)"></span>
             <span class="task-name" @click="handleTaskClick(task.id)">{{ task.title }}</span>
             <span class="task-pts" @click="handleTaskClick(task.id)">+{{ task.points }}</span>
 
@@ -308,6 +308,15 @@ const groupedTemplateTasks = computed(() => {
 })
 
 // Helpers
+
+function getTaskIcon(icon) {
+  if (!icon) return icons['check-task']
+  // icons.js da bor bo'lsa
+  if (icons[icon]) return icons[icon]
+  // Eski emoji bo'lsa shundayligicha ko'rsat
+  return `<span style="font-size:15px;line-height:1">${icon}</span>`
+}
+
 function catLabel(c) {
   return { study:"O'quv", sport:'Sport', language:'Til', self:"O'z ustida", nutrition:'Ovqat', custom:'Boshqa' }[c] || c
 }
@@ -573,7 +582,7 @@ onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
 }
 .personal-check { cursor: pointer; }
 
-.task-icon-emoji { font-size: 16px; flex-shrink: 0; }
+.task-icon-emoji { flex-shrink: 0; display:flex; align-items:center; justify-content:center; width:20px; height:20px; }
 .task-name { flex: 1; font-size: 14px; color: var(--text); min-width: 0; word-break: break-word; }
 .task-item.done .task-name { text-decoration: line-through; color: var(--text-dim); }
 .task-pts { font-family: var(--font-mono); font-size: 11px; color: var(--accent-light); flex-shrink: 0; }

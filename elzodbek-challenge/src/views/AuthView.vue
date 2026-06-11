@@ -46,8 +46,8 @@
           </div>
         </div>
 
-        <div v-if="error" class="error-msg">{{ error }}</div>
-        <div v-if="success" class="success-msg">{{ success }}</div>
+        <div v-if="error" class="error-msg">⚠️ {{ error }}</div>
+        <div v-if="success" class="success-msg">✅ {{ success }}</div>
 
         <button class="btn btn-primary btn-full" :disabled="loading" @click="submit">
           <span v-if="loading" class="spinner"></span>

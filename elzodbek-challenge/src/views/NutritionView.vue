@@ -84,7 +84,7 @@
             <span>AI tahlil qilmoqda...</span>
           </div>
           <div v-if="aiError" class="ai-error">⚠️ {{ aiError }}</div>
-          <div v-if="aiSuccess" class="ai-success">{{ aiSuccess }}</div>
+          <div v-if="aiSuccess" class="ai-success">✅ {{ aiSuccess }}</div>
         </div>
 
         <div class="divider"><span>yoki qo'lda kiriting</span></div>
@@ -131,7 +131,7 @@ const todayStr = today.toISOString().split('T')[0]
 const months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr']
 const todayFormatted = `${today.getDate()} ${months[today.getMonth()]}`
 const mealTypes = ['breakfast','lunch','dinner','snack']
-function mealIcon(t) { return {breakfast:'Nonushta',lunch:'Tushlik',dinner:'Kechki',snack:'Gazak'}[t]||'Ovqat' }
+function mealIcon(t) { return {breakfast:'🌅',lunch:'☀️',dinner:'🌙',snack:'🍎'}[t]||'🍽️' }
 
 const dailyCalGoal = computed(() => nutrition.calcDailyCalories(auth.profile) || 2000)
 const macroGoals = computed(() => nutrition.getMacroRecommendation(dailyCalGoal.value, 'maintain'))
@@ -149,8 +149,8 @@ const macroItems = computed(() => [
 const recommendation = computed(() => {
   const rem = dailyCalGoal.value - totals.value.calories
   if (rem < 0) return `⚠️ Kunlik me'yordan ${Math.abs(rem)} kcal oshib ketdingiz.`
-  if (rem < 200) return `Ajoyib! Faqat ${rem} kcal qoldi.`
-  if (rem < 500) return `Yaxshi! Yana ${rem} kcal iste'mol qilishingiz mumkin.`
+  if (rem < 200) return `✅ Ajoyib! Faqat ${rem} kcal qoldi.`
+  if (rem < 500) return `💪 Yaxshi! Yana ${rem} kcal iste'mol qilishingiz mumkin.`
   return `🍽️ Bugun yana ${rem} kcal iste'mol qilishingiz kerak.`
 })
 

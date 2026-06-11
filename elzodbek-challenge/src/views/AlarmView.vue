@@ -10,7 +10,7 @@
       <div class="clock-time">{{ currentTime }}</div>
       <div class="clock-date">{{ currentDate }}</div>
       <div class="clock-status" :class="notifGranted ? 'status-ok' : 'status-warn'">
-        {{ notifGranted ? 'Bildirishnomalar yoqilgan' : 'Bildirishnomalarni yoqing' }}
+        {{ notifGranted ? '🔔 Bildirishnomalar yoqilgan' : '🔕 Bildirishnomalarni yoqing' }}
       </div>
       <button v-if="!notifGranted" class="btn btn-outline btn-sm" style="margin-top:10px" @click="requestNotif">
         Yoqish
@@ -41,7 +41,7 @@
             <input type="checkbox" :checked="a.is_active" @change="alarm.toggleAlarm(a.id, $event.target.checked)" />
             <span class="toggle-slider"></span>
           </label>
-          <button class="del-btn" @click="alarm.deleteAlarm(a.id)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+          <button class="del-btn" @click="alarm.deleteAlarm(a.id)">🗑️</button>
         </div>
       </div>
     </div>
@@ -94,7 +94,7 @@
           ✓ To'xtatish
         </button>
         <button class="btn btn-outline ringing-btn" style="margin-top:8px" @click="snooze">
-          5 daqiqa keyinroq
+          💤 5 daqiqa keyinroq
         </button>
       </div>
     </div>
@@ -160,7 +160,7 @@ function snooze() {
   const snoozeTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
   // Vaqtinchalik 5 daqiqa keyingi alarm
   setTimeout(() => {
-    alarm.activeAlarm.value = { time: snoozeTime, label: 'Snooze' }
+    alarm.activeAlarm.value = { time: snoozeTime, label: '💤 Snooze' }
     alarm.playAlarmSound()
   }, 5 * 60 * 1000)
 }

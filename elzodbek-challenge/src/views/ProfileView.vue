@@ -28,7 +28,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Sog'liq ma'lumotlari</div>
+      <div class="card-title">💪 Sog'liq ma'lumotlari</div>
       <div class="health-grid">
         <div class="health-item"><div class="hi-val">{{ auth.profile?.height_cm || '—' }}</div><div class="hi-label">Bo'y (sm)</div></div>
         <div class="health-item"><div class="hi-val">{{ auth.profile?.weight_kg || '—' }}</div><div class="hi-label">Vazn (kg)</div></div>
@@ -70,7 +70,7 @@
           <input v-model.number="editForm.weight_kg" class="input" type="number" step="0.1" />
         </div>
       </div>
-      <div v-if="saveMsg" class="success-msg" style="margin-bottom:12px">{{ saveMsg }}</div>
+      <div v-if="saveMsg" class="success-msg" style="margin-bottom:12px">✅ {{ saveMsg }}</div>
       <button class="btn btn-primary btn-full" :disabled="saving" @click="saveProfile">
         {{ saving ? t('common.loading') : t('common.save') }}
       </button>
