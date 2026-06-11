@@ -56,7 +56,8 @@
       <!-- Template tasks -->
       <div v-for="(group, cat) in groupedTemplateTasks" :key="'t-' + cat" class="card">
         <div class="card-title" :style="{ color: catColor(cat) }">
-          {{ catIcon(cat) }} {{ catLabel(cat) }}
+          <span v-html="catIcon(cat)" style="display:inline-block;margin-right:8px"></span>
+          {{ catLabel(cat) }}
         </div>
         <div class="task-list">
           <div
@@ -80,7 +81,8 @@
       <!-- My Personal Tasks -->
       <div class="card my-tasks-card">
         <div class="card-title">
-          <span>✏️ Mening shaxsiy vazifalarim</span>
+          <span v-html="icons.pencil" style="display:inline-block;margin-right:8px"></span>
+          <span>Mening shaxsiy vazifalarim</span>
           <span class="badge badge-accent" style="margin-left:auto">{{ myTasks.length }}</span>
         </div>
 
@@ -165,7 +167,7 @@
     <Teleport to="body">
       <div v-if="deletingTask" class="modal-overlay" @click.self="deletingTask = null">
         <div class="confirm-modal">
-          <div class="confirm-icon">🗑️</div>
+          <div class="confirm-icon" v-html="icons.trash"></div>
           <h3>Vazifani o'chirish</h3>
           <p>
             <strong>"{{ deletingTask.title }}"</strong> vazifasini
@@ -174,7 +176,7 @@
           <div class="confirm-actions">
             <button class="btn btn-danger" :disabled="deleting" @click="doDelete">
               <span v-if="deleting">O'chirilmoqda...</span>
-              <span v-else>🗑️ O'chirish</span>
+              <span v-else><span v-html="icons.trash" style="display:inline-block;margin-right:6px"></span>O'chirish</span>
             </button>
             <button class="btn btn-outline" @click="deletingTask = null">Bekor</button>
           </div>
@@ -187,7 +189,7 @@
       <div v-if="editingTask" class="modal-overlay" @click.self="cancelEdit">
         <div class="edit-modal">
           <div class="edit-modal-header">
-            <h3>✎ Vazifani tahrirlash</h3>
+            <h3><span v-html="icons.pencil" style="display:inline-block;margin-right:8px"></span>Vazifani tahrirlash</h3>
             <button class="close-btn" @click="cancelEdit">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -212,7 +214,7 @@
           <div class="edit-modal-footer">
             <button class="btn btn-primary" :disabled="editSaving" @click="saveEdit">
               <span v-if="editSaving">Saqlanmoqda...</span>
-              <span v-else>💾 Saqlash</span>
+              <span v-else>Saqlash</span>
             </button>
             <button class="btn btn-outline" @click="cancelEdit">Bekor</button>
           </div>
@@ -224,7 +226,7 @@
     <Teleport to="body">
       <div v-if="showLoginPrompt" class="modal-overlay" @click.self="showLoginPrompt=false">
         <div class="login-prompt">
-          <div class="lp-icon">🔐</div>
+          <div class="lp-icon" v-html="icons.lock"></div>
           <h3>Kirish kerak</h3>
           <p>Vazifalarni belgilash uchun akkauntga kiring</p>
           <router-link to="/auth" class="btn btn-primary btn-full" @click="showLoginPrompt=false">
@@ -243,6 +245,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from '../supabase.js'
 import { useAuthStore } from '../stores/auth.js'
+import { icons } from '../icons.js'
 
 const authStore = useAuthStore()
 
@@ -309,7 +312,15 @@ function catLabel(c) {
   return { study:"O'quv", sport:'Sport', language:'Til', self:"O'z ustida", nutrition:'Ovqat', custom:'Boshqa' }[c] || c
 }
 function catIcon(c) {
-  return { study:'O'quv', sport:'Sport', language:'Til', self:'Shaxs', nutrition:'Ovqat', custom:'Boshqa' }[c] || '✅'
+  const iconMap = { 
+    study: icons.book, 
+    sport: icons.dumbbell, 
+    language: icons.globe, 
+    self: icons.star, 
+    nutrition: icons.salad, 
+    custom: icons.pencil 
+  }
+  return iconMap[c] || icons.check
 }
 function catColor(c) {
   return { study:'#6c63ff', sport:'#10b981', language:'#3b82f6', self:'#8b5cf6', nutrition:'#f59e0b', custom:'#ec4899' }[c] || '#6c63ff'

@@ -3,7 +3,7 @@
     <div class="page-header">
       <div class="header-row">
         <div>
-          <h1>🛡️ Admin Panel</h1>
+          <h1><span v-html="icons.shield" style="display:inline-block;margin-right:8px"></span>Admin Panel</h1>
           <p class="header-sub">Salom, {{ auth.profile?.full_name || auth.profile?.email }}</p>
         </div>
         <button class="btn btn-outline btn-sm" @click="goLogout">Chiqish</button>
@@ -13,14 +13,15 @@
     <div class="admin-tabs">
       <button v-for="tab in adminTabs" :key="tab.id" class="admin-tab"
         :class="{ active: activeTab === tab.id }" @click="activeTab = tab.id">
-        {{ tab.icon }} {{ tab.label }}
+        <span v-html="tab.iconHtml" style="display:inline-block;margin-right:4px"></span>
+        {{ tab.label }}
       </button>
     </div>
 
     <!-- TEMPLATES TAB -->
     <div v-if="activeTab === 'templates'">
       <div class="card">
-        <div class="card-title">📋 Mening namuna vazifalarim</div>
+        <div class="card-title"><span v-html="icons.clipboard" style="display:inline-block;margin-right:8px"></span>Mening namuna vazifalarim</div>
         <div class="template-list">
           <div v-for="task in myTemplateTasks" :key="task.id" class="template-item">
             <span class="task-icon">{{ task.icon }}</span>
@@ -32,8 +33,8 @@
               </div>
             </div>
             <div class="template-actions">
-              <button class="btn btn-outline btn-sm" @click="editTemplate(task)">✏️</button>
-              <button class="btn btn-danger btn-sm" @click="deleteTemplate(task.id)">✕</button>
+              <button class="btn btn-outline btn-sm" @click="editTemplate(task)"><span v-html="icons.pencil"></span></button>
+              <button class="btn btn-danger btn-sm" @click="deleteTemplate(task.id)"><span v-html="icons.trash"></span></button>
             </div>
           </div>
           <div v-if="!myTemplateTasks.length" class="empty-state">Hali namuna qo'shilmagan</div>
@@ -44,7 +45,16 @@
       </div>
 
       <div v-if="showTemplateForm" class="card">
-        <div class="card-title">{{ editingTemplate ? '✏️ Tahrirlash' : '➕ Yangi namuna' }}</div>
+        <div class="card-title">
+          <span v-if="editingTemplate" style="display:inline-flex;align-items:center;gap:8px">
+            <span v-html="icons.pencil"></span>
+            <span>Tahrirlash</span>
+          </span>
+          <span v-else style="display:inline-flex;align-items:center;gap:8px">
+            <span v-html="icons.plus"></span>
+            <span>Yangi namuna</span>
+          </span>
+        </div>
         <div class="form-group">
           <label class="label">Nomi</label>
           <input v-model="tForm.title" class="input" placeholder="Vazifa nomi" />
@@ -53,12 +63,12 @@
           <div class="form-group">
             <label class="label">Kategoriya</label>
             <select v-model="tForm.category" class="select">
-              <option value="study"> O'quv</option>
-              <option value="sport"> Sport</option>
-              <option value="language"> Til</option>
-              <option value="self"> O'z ustida</option>
-              <option value="nutrition">🍽️ Ovqat</option>
-              <option value="custom">✏️ Boshqa</option>
+              <option value="study">O'quv</option>
+              <option value="sport">Sport</option>
+              <option value="language">Til</option>
+              <option value="self">O'z ustida</option>
+              <option value="nutrition">Ovqat</option>
+              <option value="custom">Boshqa</option>
             </select>
           </div>
           <div class="form-group">
@@ -84,13 +94,16 @@
     <div v-if="activeTab === 'stats'">
       <div class="stats-overview">
         <div class="stat-card" v-for="s in myStats" :key="s.label">
-          <div class="sc-icon">{{ s.icon }}</div>
+          <div class="sc-icon" v-html="s.iconHtml"></div>
           <div class="sc-val" :style="{ color: s.color }">{{ s.value }}</div>
           <div class="sc-label">{{ s.label }}</div>
         </div>
       </div>
       <div class="card">
-        <div class="card-title">ℹ️ Admin huquqlari</div>
+        <div class="card-title" style="display:inline-flex;align-items:center;gap:8px">
+          <span v-html="icons.info"></span>
+          <span>Admin huquqlari</span>
+        </div>
         <div class="info-list">
           <div class="info-row">Namuna vazifalar yaratish va tahrirlash</div>
           <div class="info-row">O'z namunalarini o'chirish</div>
@@ -109,6 +122,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import { supabase } from '../supabase.js'
+import { icons } from '../icons.js'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -122,13 +136,13 @@ const formError = ref('')
 const tForm = ref({ title: '', category: 'study', icon: '✓', points: 10 })
 
 const adminTabs = [
-  { id: 'templates', icon: '📋', label: 'Namunalar' },
-  { id: 'stats', icon: '', label: 'Statistika' },
+  { id: 'templates', iconHtml: icons.clipboard, label: 'Namunalar' },
+  { id: 'stats', iconHtml: icons.info, label: 'Statistika' },
 ]
 
 const myStats = computed(() => [
-  { icon: '📋', label: 'Jami namunalar', value: myTemplateTasks.value.length, color: '#f59e0b' },
-  { icon: '✓', label: 'Faol namunalar', value: myTemplateTasks.value.filter(t => t.is_active !== false).length, color: '#00d4aa' },
+  { iconHtml: icons.clipboard, label: 'Jami namunalar', value: myTemplateTasks.value.length, color: '#f59e0b' },
+  { iconHtml: icons.check, label: 'Faol namunalar', value: myTemplateTasks.value.filter(t => t.is_active !== false).length, color: '#00d4aa' },
 ])
 
 function editTemplate(task) {
