@@ -81,11 +81,11 @@ for (let h = 5; h <= 23; h++) {
 const userBlocks = ref([])
 
 const defaultBlocks = [
-  { time: '06:00', title: '☀️ Uyg\'onish + Namoz', color: '#6366f1' },
-  { time: '06:30', title: '💪 Sport', color: '#10b981' },
+  { time: '06:00', title: ' Uyg\'onish + Namoz', color: '#6366f1' },
+  { time: '06:30', title: ' Sport', color: '#10b981' },
   { time: '07:30', title: '🍳 Nonushta', color: '#9ca3af' },
-  { time: '20:00', title: '🪞 Kunlik tahlil', color: '#8b5cf6' },
-  { time: '23:00', title: '🌙 Uyqu', color: '#4f46e5' },
+  { time: '20:00', title: ' Kunlik tahlil', color: '#8b5cf6' },
+  { time: '23:00', title: ' Uyqu', color: '#4f46e5' },
 ]
 
 const dayBlocks = computed(() => {

@@ -4,70 +4,40 @@
       <h1>{{ t('nav.profile') }}</h1>
     </div>
 
-    <!-- Avatar & Name -->
     <div class="card profile-card">
       <div class="avatar">{{ initials }}</div>
       <div class="profile-info">
-        <div class="profile-name">{{ auth.profile.value?.full_name || 'Foydalanuvchi' }}</div>
-        <div class="profile-email">{{ auth.user.value?.email }}</div>
+        <div class="profile-name">{{ auth.profile?.full_name || 'Foydalanuvchi' }}</div>
+        <div class="profile-email">{{ auth.user?.email }}</div>
         <span class="badge" :class="roleBadge">{{ roleLabel }}</span>
       </div>
     </div>
 
-    <!-- Challenge Progress -->
     <div class="card">
       <div class="card-title">🏆 Challenge progress</div>
       <div class="challenge-info">
-        <div class="ch-row">
-          <span class="ch-label">Boshlanish</span>
-          <span class="ch-val">{{ auth.profile.value?.challenge_start || '—' }}</span>
-        </div>
-        <div class="ch-row">
-          <span class="ch-label">Tugash</span>
-          <span class="ch-val">{{ auth.profile.value?.challenge_end || '—' }}</span>
-        </div>
-        <div class="ch-row">
-          <span class="ch-label">Davomiylik</span>
-          <span class="ch-val">{{ auth.profile.value?.challenge_duration || 90 }} kun</span>
-        </div>
-        <div class="ch-row">
-          <span class="ch-label">Maqsad</span>
-          <span class="ch-val goal-text">{{ auth.profile.value?.goal || '—' }}</span>
-        </div>
+        <div class="ch-row"><span class="ch-label">Boshlanish</span><span class="ch-val">{{ auth.profile?.challenge_start || '—' }}</span></div>
+        <div class="ch-row"><span class="ch-label">Tugash</span><span class="ch-val">{{ auth.profile?.challenge_end || '—' }}</span></div>
+        <div class="ch-row"><span class="ch-label">Davomiylik</span><span class="ch-val">{{ auth.profile?.challenge_duration || 90 }} kun</span></div>
+        <div class="ch-row"><span class="ch-label">Maqsad</span><span class="ch-val goal-text">{{ auth.profile?.goal || '—' }}</span></div>
       </div>
       <div class="challenge-bar-wrap">
-        <div class="challenge-bar">
-          <div class="challenge-fill" :style="{ width: challengeProgress + '%' }"></div>
-        </div>
+        <div class="challenge-bar"><div class="challenge-fill" :style="{ width: challengeProgress + '%' }"></div></div>
         <span class="challenge-pct">{{ challengeProgress }}%</span>
       </div>
     </div>
 
-    <!-- Health Info -->
     <div class="card">
       <div class="card-title">💪 Sog'liq ma'lumotlari</div>
       <div class="health-grid">
-        <div class="health-item">
-          <div class="hi-val">{{ auth.profile.value?.height_cm || '—' }}</div>
-          <div class="hi-label">Bo'y (sm)</div>
-        </div>
-        <div class="health-item">
-          <div class="hi-val">{{ auth.profile.value?.weight_kg || '—' }}</div>
-          <div class="hi-label">Vazn (kg)</div>
-        </div>
-        <div class="health-item">
-          <div class="hi-val">{{ age || '—' }}</div>
-          <div class="hi-label">Yosh</div>
-        </div>
-        <div class="health-item">
-          <div class="hi-val" style="font-size:14px">{{ bmi || '—' }}</div>
-          <div class="hi-label">BMI</div>
-        </div>
+        <div class="health-item"><div class="hi-val">{{ auth.profile?.height_cm || '—' }}</div><div class="hi-label">Bo'y (sm)</div></div>
+        <div class="health-item"><div class="hi-val">{{ auth.profile?.weight_kg || '—' }}</div><div class="hi-label">Vazn (kg)</div></div>
+        <div class="health-item"><div class="hi-val">{{ age || '—' }}</div><div class="hi-label">Yosh</div></div>
+        <div class="health-item"><div class="hi-val" style="font-size:14px">{{ bmi || '—' }}</div><div class="hi-label">BMI</div></div>
       </div>
       <div v-if="bmiStatus" class="bmi-status" :style="{ color: bmiColor }">{{ bmiStatus }}</div>
     </div>
 
-    <!-- Settings -->
     <div class="card">
       <div class="card-title">⚙️ Sozlamalar</div>
       <div class="settings-list">
@@ -79,12 +49,11 @@
         </div>
         <div class="setting-item">
           <span>Yo'nalish</span>
-          <span class="setting-val">{{ auth.profile.value?.direction ? t(`onboarding.directions.${auth.profile.value.direction}`) : '—' }}</span>
+          <span class="setting-val">{{ auth.profile?.direction ? t(`onboarding.directions.${auth.profile?.direction}`) : '—' }}</span>
         </div>
       </div>
     </div>
 
-    <!-- Edit Profile -->
     <div class="card">
       <div class="card-title">✏️ Profilni tahrirlash</div>
       <div class="form-group">
@@ -107,12 +76,11 @@
       </button>
     </div>
 
-    <!-- Logout -->
     <button class="btn btn-outline btn-full" style="margin-bottom:8px;border-color:rgba(239,68,68,0.3);color:var(--danger)" @click="logout">
       🚪 Chiqish
     </button>
 
-    <div style="height:80px"></div>
+    <div style="height:20px"></div>
   </div>
 </template>
 
@@ -138,32 +106,26 @@ function setLang(code) {
 }
 
 const initials = computed(() => {
-  const name = auth.profile.value?.full_name || 'U'
-  return name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()
+  const n = auth.profile?.full_name || 'U'
+  return n.split(' ').map(x => x[0]).slice(0,2).join('').toUpperCase()
 })
-
 const roleLabel = computed(() => {
-  const r = auth.profile.value?.role
+  const r = auth.profile?.role
   return r === 'superadmin' ? '👑 SuperAdmin' : r === 'admin' ? '🛡️ Admin' : '👤 User'
 })
-
 const roleBadge = computed(() => {
-  const r = auth.profile.value?.role
+  const r = auth.profile?.role
   return r === 'superadmin' ? 'badge-warning' : r === 'admin' ? 'badge-accent' : 'badge-success'
 })
-
 const age = computed(() => {
-  const y = auth.profile.value?.birth_year
+  const y = auth.profile?.birth_year
   return y ? new Date().getFullYear() - y : null
 })
-
 const bmi = computed(() => {
-  const h = auth.profile.value?.height_cm
-  const w = auth.profile.value?.weight_kg
+  const h = auth.profile?.height_cm, w = auth.profile?.weight_kg
   if (!h || !w) return null
   return (w / ((h/100) ** 2)).toFixed(1)
 })
-
 const bmiStatus = computed(() => {
   const b = parseFloat(bmi.value)
   if (!b) return null
@@ -172,7 +134,6 @@ const bmiStatus = computed(() => {
   if (b < 30) return '🟡 Ortiqcha vazn'
   return '🔴 Semizlik'
 })
-
 const bmiColor = computed(() => {
   const b = parseFloat(bmi.value)
   if (!b) return 'var(--text-dim)'
@@ -181,46 +142,34 @@ const bmiColor = computed(() => {
   if (b < 30) return '#f59e0b'
   return '#ef4444'
 })
-
 const challengeProgress = computed(() => {
-  const start = auth.profile.value?.challenge_start
-  const dur = auth.profile.value?.challenge_duration || 90
+  const start = auth.profile?.challenge_start
+  const dur = auth.profile?.challenge_duration || 90
   if (!start) return 0
   const days = Math.floor((new Date() - new Date(start)) / 86400000)
   return Math.min(100, Math.round((days / dur) * 100))
 })
 
-const editForm = ref({
-  full_name: '',
-  height_cm: null,
-  weight_kg: null,
-})
-
-watch(
-  () => auth.profile,
-  (profile) => {
-    if (profile) {
-      editForm.value.full_name = profile?.full_name || ''
-      editForm.value.height_cm = profile?.height_cm || null
-      editForm.value.weight_kg = profile?.weight_kg || null
-    }
-  },
-  { immediate: true, deep: true }
-)
+const editForm = ref({ full_name: '', height_cm: null, weight_kg: null })
+watch(() => auth.profile, (p) => {
+  if (p) {
+    editForm.value.full_name = p.full_name || ''
+    editForm.value.height_cm = p.height_cm || null
+    editForm.value.weight_kg = p.weight_kg || null
+  }
+}, { immediate: true, deep: true })
 
 const saving = ref(false)
 const saveMsg = ref('')
-
 async function saveProfile() {
   saving.value = true
   try {
     await auth.updateProfile(editForm.value)
     saveMsg.value = t('common.success')
     setTimeout(() => saveMsg.value = '', 3000)
-  } catch (e) { console.error(e) }
+  } catch(e) { console.error(e) }
   finally { saving.value = false }
 }
-
 async function logout() {
   await auth.logout()
   router.push('/auth')
@@ -228,20 +177,13 @@ async function logout() {
 </script>
 
 <style scoped>
-.page { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
-.page-header { margin-bottom: 20px; }
+.page { padding: 20px 16px; max-width: 700px; margin: 0 auto; }
+@media(min-width:768px){ .page { padding: 32px 40px; max-width: 860px; } }
+.page-header { margin-bottom: 24px; }
 .page-header h1 { font-family: var(--font-display); font-weight: 800; font-size: 24px; }
 
 .profile-card { display: flex; align-items: center; gap: 16px; }
-.avatar {
-  width: 64px; height: 64px;
-  background: var(--accent);
-  border-radius: 20px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display);
-  font-weight: 800; font-size: 22px;
-  flex-shrink: 0;
-}
+.avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 800; font-size: 22px; color: white; flex-shrink: 0; }
 .profile-name { font-family: var(--font-display); font-weight: 700; font-size: 18px; margin-bottom: 4px; }
 .profile-email { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
 

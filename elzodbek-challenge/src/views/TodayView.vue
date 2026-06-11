@@ -4,7 +4,7 @@
     <!-- Guest Banner -->
     <div v-if="!isLoggedIn" class="guest-banner">
       <div class="guest-text">
-        <span>👋 Xush kelibsiz!</span>
+        <span>Xush kelibsiz!</span>
         <p>Vazifalarni belgilash uchun kiring</p>
       </div>
       <router-link to="/auth" class="btn btn-primary btn-sm">Kirish</router-link>
@@ -13,7 +13,7 @@
     <!-- Header -->
     <div class="today-header">
       <div>
-        <div class="greeting">Xayrli kun, {{ firstName }}! 👋</div>
+        <div class="greeting">Xayrli kun, {{ firstName }}!</div>
         <div class="today-date">{{ todayFormatted }}</div>
       </div>
       <div class="today-ring">
@@ -36,7 +36,7 @@
       </div>
       <div class="qs-divider"></div>
       <div class="qs-item">
-        <span class="qs-val" style="color:var(--warning)">🔥 {{ challengeDays }}</span>
+        <span class="qs-val" style="color:var(--warning)">{{ challengeDays }}</span>
         <span class="qs-label">kun challenge</span>
       </div>
       <div class="qs-divider"></div>
@@ -56,7 +56,7 @@
       <!-- Template tasks -->
       <div v-for="(group, cat) in groupedTemplateTasks" :key="'t-' + cat" class="card">
         <div class="card-title" :style="{ color: catColor(cat) }">
-          {{ catIcon(cat) }} {{ catLabel(cat) }}
+          <span v-html="catIcon(cat)"></span> {{ catLabel(cat) }}
         </div>
         <div class="task-list">
           <div
@@ -70,7 +70,7 @@
                 : { borderColor: catColor(cat) }">
               <span v-if="doneIds.includes(task.id)">✓</span>
             </div>
-            <span class="task-icon-emoji">{{ task.icon }}</span>
+            <span class="task-icon-emoji" v-html="getTaskIcon(task.icon)"></span>
             <span class="task-name">{{ task.title }}</span>
             <span class="task-pts">+{{ task.points }}</span>
           </div>
@@ -100,7 +100,7 @@
             </div>
 
             <!-- Content -->
-            <span class="task-icon-emoji" @click="handleTaskClick(task.id)">{{ task.icon }}</span>
+            <span class="task-icon-emoji" v-html="getTaskIcon(task.icon)" @click="handleTaskClick(task.id)"></span>
             <span class="task-name" @click="handleTaskClick(task.id)">{{ task.title }}</span>
             <span class="task-pts" @click="handleTaskClick(task.id)">+{{ task.points }}</span>
 
@@ -137,10 +137,10 @@
           </div>
           <div class="add-row" style="margin-top:8px">
             <select v-model="newTask.category" class="select" style="flex:1">
-              <option value="study">📚 O'quv</option>
-              <option value="sport">💪 Sport</option>
-              <option value="language">🌍 Til</option>
-              <option value="self">🌟 O'z ustida</option>
+              <option value="study">O'quv</option>
+              <option value="sport">Sport</option>
+              <option value="language">Til</option>
+              <option value="self">O'z ustida</option>
               <option value="nutrition">🍽️ Ovqat</option>
               <option value="custom">✏️ Boshqa</option>
             </select>
@@ -199,10 +199,10 @@
             </div>
             <div class="add-row" style="margin-top:10px">
               <select v-model="editingTask.category" class="select" style="flex:1">
-                <option value="study">📚 O'quv</option>
-                <option value="sport">💪 Sport</option>
-                <option value="language">🌍 Til</option>
-                <option value="self">🌟 O'z ustida</option>
+                <option value="study">O'quv</option>
+                <option value="sport">Sport</option>
+                <option value="language">Til</option>
+                <option value="self">O'z ustida</option>
                 <option value="nutrition">🍽️ Ovqat</option>
                 <option value="custom">✏️ Boshqa</option>
               </select>
@@ -308,8 +308,117 @@ const groupedTemplateTasks = computed(() => {
 function catLabel(c) {
   return { study:"O'quv", sport:'Sport', language:'Til', self:"O'z ustida", nutrition:'Ovqat', custom:'Boshqa' }[c] || c
 }
+const TASK_ICONS = {
+  sun: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="12" cy="12" r="2.5" fill="currentColor" fill-opacity="0.5"/>
+    <path d="M12 1.5V4M12 20v2.5M1.5 12H4M20 12h2.5M4.22 4.22l1.77 1.77M18.01 18.01l1.77 1.77M4.22 19.78l1.77-1.77M18.01 5.99l1.77-1.77" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M12 1.5V4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>`,
+  mosque: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 21h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M4 21V11l3-3 3 3 2-4 2 4 3-3 3 3v10z" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M10 21v-5h4v5" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M12 4v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M9 7a3 3 0 0 1 6 0" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="12" cy="5" r="1.2" fill="currentColor" fill-opacity="0.5"/>
+  </svg>`,
+  dumbbell: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="1.5" y="8.5" width="4" height="7" rx="1.5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.5"/>
+    <rect x="18.5" y="8.5" width="4" height="7" rx="1.5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.5"/>
+    <rect x="5" y="10" width="3.5" height="4" rx="0.8" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.3"/>
+    <rect x="15.5" y="10" width="3.5" height="4" rx="0.8" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.3"/>
+    <line x1="8.5" y1="12" x2="15.5" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>`,
+  flame: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2c0 0-6 5-6 11a6 6 0 0 0 12 0c0-2.5-1.5-4.5-3-5.5.5 2-1 3-2 3-1.5 0-2.5-1.5-1-4.5z" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M12 17a2 2 0 0 0 2-2c0-1-1-2-2-1.5-.5.3-.8 1-.5 1.5" fill="currentColor" fill-opacity="0.5"/>
+  </svg>`,
+  book: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 1 4 17.5z" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M4 17.5A2.5 2.5 0 0 0 6.5 20H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M8 7h8M8 11h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M6.5 2a2.5 2.5 0 0 0 0 5" stroke="currentColor" stroke-width="1.4"/>
+  </svg>`,
+  globe: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="9.5" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M12 2.5C12 2.5 8 6.5 8 12s4 9.5 4 9.5 4-4 4-9.5-4-9.5-4-9.5z" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.4"/>
+    <path d="M2.5 9h19M2.5 15h19" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+  </svg>`,
+  laptop: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="4" width="20" height="13" rx="2" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M8 8h8M8 11h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M1 17h22l-1 2.5a1 1 0 0 1-.93.5H2.93a1 1 0 0 1-.93-.5z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.4"/>
+  </svg>`,
+  mirror: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="12" cy="9.5" rx="6.5" ry="8" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5"/>
+    <ellipse cx="12" cy="9.5" rx="3.5" ry="4.5" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/>
+    <path d="M9 20h6M12 18v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`,
+  'phone-off': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="2" width="14" height="20" rx="2.5" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M9 5h6M12 18.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>`,
+  moon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="17" cy="6" r="1" fill="currentColor" fill-opacity="0.5"/>
+    <circle cx="19" cy="10" r="0.7" fill="currentColor" fill-opacity="0.4"/>
+  </svg>`,
+  salad: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M7 21h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M7 12c1-3 4-4 5-2M17 12c-1-3-4-4-5-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <circle cx="12" cy="9" r="1.5" fill="currentColor" fill-opacity="0.4"/>
+  </svg>`,
+  droplet: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 3L6.5 10A6.5 6.5 0 1 0 17.5 10z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M9 15a3 3 0 0 0 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+  </svg>`,
+  muscle: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 15c0 0 2 3 5 3s4-2 4-2 1 2 4 2 4-3 4-3" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M12 6c-2 0-4 1.5-4 4s1.5 3.5 4 3.5S16 11.5 16 9s-2-3-4-3z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.4"/>
+    <path d="M8 10H4M20 10h-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`,
+  check: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="9.5" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M7.5 12.5l3 3 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`,
+  target: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="9.5" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="12" cy="12" r="5.5" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.3"/>
+    <circle cx="12" cy="12" r="2" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.2"/>
+  </svg>`,
+  star: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2l2.8 6.2L22 9.3l-5.5 5 1.6 7.7L12 18.5l-6.1 3.5L7.5 14.3 2 9.3l7.2-1.1z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  </svg>`,
+  pencil: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 3l6 6L7 23H1v-6z" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M15 3l6 6" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M1 17l6 6" stroke="currentColor" stroke-width="1.3"/>
+  </svg>`,
+  pushup: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="17" cy="4" r="2.5" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.4"/>
+    <path d="M3 18l5-6 4 2 5-7" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M2 21h20" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>`,
+  plank: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="18" cy="5" r="2.5" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.4"/>
+    <path d="M18 7.5l-1 4.5H4M4 12l-1 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M8 12l1 3M14 12l1 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>`,
+}
+
+function getTaskIcon(icon) {
+  if (!icon) return TASK_ICONS.check
+  if (TASK_ICONS[icon]) return TASK_ICONS[icon]
+  // hali emoji bo'lsa
+  return '<span style="font-size:14px">' + icon + '</span>'
+}
+
 function catIcon(c) {
-  return { study:'📚', sport:'💪', language:'🌍', self:'🌟', nutrition:'🍽️', custom:'✏️' }[c] || '✅'
+  const map = { study: TASK_ICONS.book, sport: TASK_ICONS.dumbbell, language: TASK_ICONS.globe, self: TASK_ICONS.star, nutrition: TASK_ICONS.salad, custom: TASK_ICONS.pencil }
+  return map[c] || TASK_ICONS.check
 }
 function catColor(c) {
   return { study:'#6c63ff', sport:'#10b981', language:'#3b82f6', self:'#8b5cf6', nutrition:'#f59e0b', custom:'#ec4899' }[c] || '#6c63ff'
@@ -517,7 +626,7 @@ onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
 
 /* ── Header ── */
 .today-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-.greeting { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin-bottom: 4px; }
+.greeting { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin-bottom: 4px; color: var(--text); }
 .today-date { font-size: 13px; color: var(--text-dim); }
 @media (min-width: 768px) { .greeting { font-size: 28px; } }
 .today-ring svg text { fill: var(--text); }
@@ -562,7 +671,7 @@ onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
 }
 .personal-check { cursor: pointer; }
 
-.task-icon-emoji { font-size: 16px; flex-shrink: 0; }
+.task-icon-emoji { font-size: 16px; flex-shrink: 0; display:flex; align-items:center; justify-content:center; width:18px; height:18px; }
 .task-name { flex: 1; font-size: 14px; color: var(--text); min-width: 0; word-break: break-word; }
 .task-item.done .task-name { text-decoration: line-through; color: var(--text-dim); }
 .task-pts { font-family: var(--font-mono); font-size: 11px; color: var(--accent-light); flex-shrink: 0; }

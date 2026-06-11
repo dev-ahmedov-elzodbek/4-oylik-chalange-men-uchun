@@ -36,12 +36,13 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchProfile() {
     if (!user.value?.id) return
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, email, full_name, role, direction, onboarding_done, birth_year, gender, height_cm, weight_kg, activity_level, subjects, sports, goal, challenge_start, challenge_end, challenge_duration, updated_at')
         .eq('id', user.value.id)
-        .single()
-      profile.value = data
+      if (!error && Array.isArray(data) && data.length > 0) {
+        profile.value = data[0]
+      }
     } catch (e) {
       console.error('fetchProfile error:', e)
     }
@@ -83,15 +84,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function updateProfile(updates) {
     if (!user.value?.id) throw new Error('Not logged in')
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('profiles')
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', user.value.id)
-      .select()
-      .single()
     if (error) throw error
-    profile.value = data
-    return data
+    await fetchProfile()
+    return profile.value
   }
 
   return {

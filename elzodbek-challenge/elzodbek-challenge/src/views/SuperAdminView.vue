@@ -61,6 +61,8 @@
                 <option value="admin">admin</option>
                 <option value="superadmin">superadmin</option>
               </select>
+              <button class="btn-icon btn-edit" @click="openEditModal(user)" title="Tahrirlash">✏️</button>
+              <button v-if="user.id !== auth.user?.id" class="btn-icon btn-delete" @click="deleteUser(user.id)" title="O'chirish">🗑️</button>
             </div>
           </div>
           <div v-if="!filteredUsers.length && !loading" class="empty-state">Foydalanuvchi topilmadi</div>
@@ -290,6 +292,39 @@
       </div>
     </div>
 
+    <!-- Edit User Modal -->
+    <div v-if="editModal.open" class="modal-overlay" @click.self="editModal.open = false">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>✏️ Foydalanuvchini tahrirlash</h3>
+          <button class="modal-close-btn" @click="editModal.open = false">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">To'liq ism</label>
+            <input v-model="editModal.full_name" class="form-input" placeholder="Ism familiya" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Yo'nalish</label>
+            <input v-model="editModal.direction" class="form-input" placeholder="it, law, design..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rol</label>
+            <select v-model="editModal.role" class="select">
+              <option value="user">user</option>
+              <option value="admin">admin</option>
+              <option value="superadmin">superadmin</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline btn-sm" @click="editModal.open = false">Bekor</button>
+          <button class="btn btn-primary btn-sm" @click="saveEditModal" :disabled="editModal.saving">
+            {{ editModal.saving ? 'Saqlanmoqda...' : 'Saqlash' }}
+          </button>
+        </div>
+      </div>
+    </div>
     <div style="height:80px"></div>
   </div>
 </template>
@@ -316,6 +351,7 @@ const loadingUserStats = ref(false)
 const statsSearch = ref('')
 const sortBy = ref('completions')
 const expandedUserId = ref(null)
+const editModal = ref({ open: false, id: null, full_name: '', email: '', direction: '', role: 'user', saving: false })
 
 const tabs = [
   { id: 'users', icon: '👥', label: 'Foydalanuvchilar' },
@@ -467,6 +503,24 @@ async function deleteTemplate(id) {
   allTemplates.value = allTemplates.value.filter(t => t.id !== id)
 }
 
+function openEditModal(user) {
+  editModal.value = { open: true, id: user.id, full_name: user.full_name || '', direction: user.direction || '', role: user.role || 'user', saving: false }
+}
+async function saveEditModal() {
+  editModal.value.saving = true
+  const { error } = await supabase.from('profiles').update({ full_name: editModal.value.full_name, direction: editModal.value.direction, role: editModal.value.role }).eq('id', editModal.value.id)
+  if (!error) {
+    const u = users.value.find(u => u.id === editModal.value.id)
+    if (u) { u.full_name = editModal.value.full_name; u.direction = editModal.value.direction; u.role = editModal.value.role }
+    editModal.value.open = false
+  }
+  editModal.value.saving = false
+}
+async function deleteUser(userId) {
+  if (!confirm("Bu foydalanuvchini o'chirmoqchimisiz?")) return
+  const { error } = await supabase.from('profiles').delete().eq('id', userId)
+  if (!error) users.value = users.value.filter(u => u.id !== userId)
+}
 async function goLogout() {
   await auth.logout()
   router.push('/superadmin-login')
@@ -476,12 +530,13 @@ async function loadUserStats() {
   loadingUserStats.value = true
   try {
     // task_completions + tasks join
-    const { data: completions } = await supabase
+    const { data: completions, error: statsErr } = await supabase
       .from('task_completions')
       .select('user_id, completed_date, task_id, tasks(points, category)')
       .order('completed_date', { ascending: false })
 
-    if (!completions) return
+    if (statsErr) { console.warn('task_completions:', statsErr.message); userStatsMap.value = {}; return }
+    if (!completions || completions.length === 0) return
 
     const statsMap = {}
     const today = new Date().toISOString().split('T')[0]
@@ -600,7 +655,7 @@ onMounted(loadData)
 .user-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
 .user-dir { font-size: 11px; color: var(--text-dim); }
 .user-date { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
-.user-actions { flex-shrink: 0; }
+.user-actions { flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
 .select-sm { width: 100px; padding: 5px 6px; font-size: 12px; }
 
 .template-list { display: flex; flex-direction: column; gap: 8px; }
@@ -707,4 +762,18 @@ onMounted(loadData)
 
 .udp-cats-title { font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
 .udp-cats { margin-top: 4px; }
+
+.btn-icon { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface3); cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+.btn-edit:hover { background: rgba(108,99,255,0.2); border-color: var(--accent); }
+.btn-delete:hover { background: rgba(239,68,68,0.2); border-color: var(--danger); }
+.modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal-box { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); width: 100%; max-width: 420px; box-shadow: var(--shadow-lg); animation: slideUp 0.2s ease; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 14px; border-bottom: 1px solid var(--border); }
+.modal-header h3 { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.modal-footer { padding: 14px 20px 18px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+.form-input { padding: 10px 12px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--surface2); color: var(--text); font-family: var(--font-body); font-size: 14px; outline: none; width: 100%; }
+.form-input:focus { border-color: var(--accent); }
 </style>

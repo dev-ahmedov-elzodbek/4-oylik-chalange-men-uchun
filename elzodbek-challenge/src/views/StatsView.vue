@@ -33,7 +33,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">📈 So'nggi 7 kun</div>
+      <div class="card-title"> So'nggi 7 kun</div>
       <div class="week-chart">
         <div v-for="(day, i) in last7" :key="i" class="wc-col">
           <div class="wc-pct">{{ tasks.getDayCompletion(ds(day)) }}%</div>
@@ -78,9 +78,9 @@ const last7 = computed(() => Array.from({length:7},(_,i)=>{ const d=new Date(tod
 const LEVELS = [
   { name: "Boshlang'ich", icon: '🌱', color: '#6b7280', desc: 'Sayohat boshlandi', min: 0 },
   { name: 'Harakatchi',   icon: '⚡', color: '#3b82f6', desc: 'Ritm topilmoqda', min: 300 },
-  { name: 'Intizomli',    icon: '🔥', color: '#f59e0b', desc: 'Odatlar shakllanmoqda', min: 1000 },
+  { name: 'Intizomli',    icon: '', color: '#f59e0b', desc: 'Odatlar shakllanmoqda', min: 1000 },
   { name: 'Mard',         icon: '💎', color: '#8b5cf6', desc: 'Kuchli intizom', min: 3000 },
-  { name: 'Champion',     icon: '🏆', color: '#f0c040', desc: "Haqiqiy g'olib!", min: 7000 },
+  { name: 'Champion',     icon: '', color: '#f0c040', desc: "Haqiqiy g'olib!", min: 7000 },
 ]
 
 const totalPts = computed(() => tasks.getTotalPoints())
@@ -102,8 +102,8 @@ const challengePct = computed(() => {
 const mainStats = computed(() => [
   { icon: '⚡', label: 'Jami ball', value: totalPts.value, color: '#6c63ff' },
   { icon: '📅', label: 'Challenge kuni', value: challengeDaysPassed.value, color: '#f59e0b' },
-  { icon: '🏆', label: 'Daraja', value: currentLevel.value.icon + ' ' + currentLevel.value.name, color: currentLevel.value.color },
-  { icon: '✅', label: 'Bugun', value: tasks.getDayCompletion(ds(today)) + '%', color: '#00d4aa' },
+  { icon: '', label: 'Daraja', value: currentLevel.value.icon + ' ' + currentLevel.value.name, color: currentLevel.value.color },
+  { icon: '✓', label: 'Bugun', value: tasks.getDayCompletion(ds(today)) + '%', color: '#00d4aa' },
 ])
 
 const quotes = [

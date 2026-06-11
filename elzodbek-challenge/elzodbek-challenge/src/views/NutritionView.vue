@@ -76,6 +76,15 @@
             </div>
           </div>
           <input ref="fileInput" type="file" accept="image/*" capture="environment" style="display:none" @change="onFileChange" />
+          <button v-if="previewImg && !aiLoading" class="btn btn-primary" style="width:100%;margin-top:8px" @click="analyzeImage">
+            🔍 AI bilan tahlil qilish
+          </button>
+          <div v-if="aiLoading" class="ai-loading">
+            <div class="ai-spinner"></div>
+            <span>AI tahlil qilmoqda...</span>
+          </div>
+          <div v-if="aiError" class="ai-error">⚠️ {{ aiError }}</div>
+          <div v-if="aiSuccess" class="ai-success">✅ {{ aiSuccess }}</div>
         </div>
 
         <div class="divider"><span>yoki qo'lda kiriting</span></div>
@@ -192,25 +201,33 @@ async function analyzeImage() {
   if (!imageBase64.value) return
   aiLoading.value = true; aiError.value = ''; aiSuccess.value = ''
   try {
-    const mediaType = previewImg.value.startsWith('data:image/png') ? 'image/png'
-      : previewImg.value.startsWith('data:image/webp') ? 'image/webp'
-      : 'image/jpeg'
-
-    const res = await fetch('/api/analyze-food', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageBase64: imageBase64.value, mediaType })
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64.value } },
+            { type: 'text', text: `Bu rasmda qanday ovqat bor? Taxminiy kaloriya, oqsil, uglevod va yog' miqdorini aniqlang. Faqat JSON formatida javob bering: {"meal_name": "ovqat nomi uzbekcha", "calories": 000, "protein_g": 00, "carbs_g": 00, "fat_g": 00}` }
+          ]
+        }]
+      })
     })
-    const r = await res.json()
-    if (!res.ok) throw new Error(r.error || 'Xato')
+    const data = await res.json()
+    const text = data.content?.[0]?.text || ''
+    const match = text.match(/\{[\s\S]*\}/)
+    if (!match) throw new Error('parse error')
+    const r = JSON.parse(match[0])
     addForm.value.meal_name = r.meal_name || ''
     addForm.value.calories = r.calories || null
     addForm.value.protein_g = r.protein_g || null
     addForm.value.carbs_g = r.carbs_g || null
     addForm.value.fat_g = r.fat_g || null
     aiSuccess.value = `"${r.meal_name}" aniqlandi — ${r.calories} kcal`
-  } catch (e) {
-    aiError.value = e.message ||
+  } catch {
     aiError.value = 'Tahlil qilib bo\'lmadi. Qo\'lda kiriting.'
   } finally {
     aiLoading.value = false

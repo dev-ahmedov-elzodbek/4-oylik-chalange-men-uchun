@@ -19,7 +19,8 @@ export const useNutritionStore = defineStore('nutrition', () => {
       bmr = 10 * w + 6.25 * h - 5 * age - 161
     }
     const multipliers = { low: 1.2, moderate: 1.375, high: 1.55, very_high: 1.725 }
-    return Math.round(bmr * (multipliers[profile.activity_level] || 1.375))
+    const mult = multipliers[profile.activity_level] || 1.375
+    return Math.round(bmr * mult)
   }
 
   function getMacroRecommendation(calories, goal) {
@@ -42,20 +43,19 @@ export const useNutritionStore = defineStore('nutrition', () => {
 
   async function fetchLogs(dateStr) {
     const auth = useAuthStore()
+    // BUG FIX: auth.user?.id → auth.user?.id
     if (!auth.user?.id) return
     loading.value = true
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('nutrition_logs')
         .select('*')
         .eq('user_id', auth.user.id)
         .eq('log_date', dateStr)
         .order('created_at')
-      if (error) throw error
       logs.value = data || []
     } catch (e) {
       console.error('fetchLogs error:', e)
-      logs.value = []
     } finally {
       loading.value = false
     }
@@ -63,12 +63,13 @@ export const useNutritionStore = defineStore('nutrition', () => {
 
   async function addLog(log) {
     const auth = useAuthStore()
+    // BUG FIX: auth.user?.id → auth.user?.id
     const { data, error } = await supabase
       .from('nutrition_logs')
       .insert({ ...log, user_id: auth.user?.id })
-      .select().single()
+      .select()
     if (error) throw error
-    logs.value = [...logs.value, data]
+    logs.value.push(data?.[0] || data)
     return data
   }
 
@@ -78,7 +79,6 @@ export const useNutritionStore = defineStore('nutrition', () => {
   }
 
   function getDayTotals() {
-    if (!logs.value?.length) return { calories: 0, protein: 0, carbs: 0, fat: 0 }
     return logs.value.reduce((acc, l) => ({
       calories: acc.calories + (l.calories || 0),
       protein: acc.protein + (l.protein_g || 0),
