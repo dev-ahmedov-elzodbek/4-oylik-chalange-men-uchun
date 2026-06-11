@@ -183,16 +183,24 @@ export const icons = {
   </svg>`,
 
   pushup: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="18" cy="4" r="2.5" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.4"/>
-    <path d="M18 6.5L15 14H6M6 14l-2 4M10 14l-1 4M14 14l-1 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M2 21h20" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.4"/>
+    <circle cx="19" cy="4" r="2" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.4"/>
+    <path d="M19 6l-2 3.5H10l-3 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M7 11l-4 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M3 11l0 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M7 11l0 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M3 14h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M17 9.5l0 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M14 14.5h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
   </svg>`,
 
   plank: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="19" cy="4.5" r="2.5" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.4"/>
-    <path d="M19 7l-2 5H5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M5 12l-2 4M9 12l-1 4M13 12l-1 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-    <path d="M2 18h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.4"/>
+    <circle cx="20" cy="4.5" r="2" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.4"/>
+    <path d="M20 6.5l-1.5 2H5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M3.5 8.5l0 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M6.5 8.5l0 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M3.5 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M18.5 8.5l0 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M16 12h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
   </svg>`,
 
   target: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -211,6 +219,4 @@ export const icons = {
     <circle cx="12" cy="12" r="9.5" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5"/>
     <path d="M7.5 12.5l3 3 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`,
-}
-
 }

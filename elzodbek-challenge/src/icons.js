@@ -81,6 +81,21 @@ export const icons = {
     <path d="M12 2l2.8 6.2L22 9.3l-5.5 5 1.6 7.7L12 18.5l-6.1 3.5L7.5 14.3 2 9.3l7.2-1.1z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
   </svg>`,
 
+  // Salad
+  salad: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M7 21h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M7 12c1-3 4-4 5-2M17 12c-1-3-4-4-5-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <circle cx="12" cy="9" r="1.5" fill="currentColor" fill-opacity="0.4"/>
+  </svg>`,
+
+  // Verification/Badge
+  verified: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M10 13l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M17 6.5a2.5 2.5 0 0 1 0 3.5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.2"/>
+  </svg>`,
+
   // Success badge
   success: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="12" r="10" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5"/>
@@ -116,5 +131,84 @@ export const icons = {
   warning: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M12 2L2 20h20L12 2z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
     <path d="M12 9v4M12 17v0.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </svg>`,
+  // Task specific icons
+  sun: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="4.5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="12" cy="12" r="2" fill="currentColor" fill-opacity="0.5"/>
+    <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </svg>`,
+
+  mosque: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 21h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M4 21V12l4-4 4 4 4-4 4 4v9z" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M10 21v-5h4v5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M12 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M9.5 7a2.5 2.5 0 0 1 5 0" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="12" cy="4.5" r="1.2" fill="currentColor" fill-opacity="0.6"/>
+  </svg>`,
+
+  mirror: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="2" width="14" height="16" rx="7" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M8.5 9a3.5 3.5 0 0 1 7 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+    <path d="M9 20h6M12 18v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`,
+
+  'phone-off': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="2" width="14" height="20" rx="2.5" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M9 5.5h6M12 18.5h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M2.5 2.5l19 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>`,
+
+  moon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="17.5" cy="5.5" r="1" fill="currentColor" fill-opacity="0.5"/>
+    <circle cx="19.5" cy="9" r="0.7" fill="currentColor" fill-opacity="0.35"/>
+  </svg>`,
+
+  flame: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2c0 0-6 5.5-6 11a6 6 0 0 0 12 0c0-2.8-1.5-5-3.5-6.5.3 2-1 3.5-2.5 3.5-1.5 0-2.5-1.5-.5-4.5C11 6 12 2 12 2z" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M12 17a2 2 0 0 0 2-2c0-1.2-1-2.2-2-1.8-.6.3-.9 1.2-.5 1.8" fill="currentColor" fill-opacity="0.45"/>
+  </svg>`,
+
+  droplet: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 3L6 10.5A6 6 0 1 0 18 10.5z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M9.5 15a3 3 0 0 0 2.5 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+  </svg>`,
+
+  muscle: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 6c-2.5 0-4.5 1.5-4.5 4.5S9 15 12 15s4.5-1.5 4.5-4.5S14.5 6 12 6z" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-width="1.4"/>
+    <path d="M7.5 10.5H4M20 10.5h-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M4 8.5v4M20 8.5v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`,
+
+  pushup: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="18" cy="4" r="2.5" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.4"/>
+    <path d="M18 6.5L15 14H6M6 14l-2 4M10 14l-1 4M14 14l-1 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M2 21h20" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.4"/>
+  </svg>`,
+
+  plank: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="19" cy="4.5" r="2.5" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.4"/>
+    <path d="M19 7l-2 5H5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M5 12l-2 4M9 12l-1 4M13 12l-1 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M2 18h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.4"/>
+  </svg>`,
+
+  target: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="9.5" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="12" cy="12" r="5.5" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.3"/>
+    <circle cx="12" cy="12" r="2.2" fill="currentColor" fill-opacity="0.45" stroke="currentColor" stroke-width="1.2"/>
+  </svg>`,
+
+  laptop: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="4" width="20" height="13" rx="2" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M8 8h8M8 11.5h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M1 17h22l-1.5 3H2.5z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+  </svg>`,
+
+  'check-task': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="9.5" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M7.5 12.5l3 3 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`,
 }
