@@ -21,7 +21,8 @@ const routes = [
   { path: '/schedule', component: () => import('../views/ScheduleView.vue') },
   { path: '/alarm', component: () => import('../views/AlarmView.vue'), meta: { auth: true } },
   { path: '/nutrition', component: () => import('../views/NutritionView.vue') },
-  { path: '/profile', component: () => import('../views/ProfileView.vue'), meta: { auth: true } },
+  { path: '/profile',      component: () => import('../views/ProfileView.vue'),      meta: { auth: true } },
+  { path: '/subscription', component: () => import('../views/SubscriptionView.vue'), meta: { auth: true } },
 ]
 
 export const router = createRouter({
