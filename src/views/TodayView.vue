@@ -4,69 +4,93 @@
     <!-- ── Guest Banner ── -->
     <div v-if="!isLoggedIn" class="guest-banner anim-fade-up">
       <div class="guest-text">
-        <span>Xush kelibsiz!</span>
-        <p>Vazifalarni belgilash uchun kiring</p>
+        <span>Xush kelibsiz! 👋</span>
+        <p>Vazifalarni belgilash uchun akkauntga kiring</p>
       </div>
-      <router-link to="/auth" class="btn btn-primary btn-sm">Kirish</router-link>
+      <router-link to="/auth" class="btn btn-primary btn-sm btn-ripple">Kirish →</router-link>
     </div>
 
-    <!-- ── Header ── -->
-    <div class="today-header anim-fade-up">
-      <div>
-        <div class="greeting">Xayrli kun, <span class="accent-text">{{ firstName }}</span>!</div>
-        <div class="today-date">{{ todayFormatted }}</div>
-      </div>
-      <div class="today-ring" @click="ringPulse = !ringPulse">
-        <svg viewBox="0 0 60 60" width="68" height="68" class="ring-svg">
-          <circle cx="30" cy="30" r="24" fill="none" stroke="var(--surface3)" stroke-width="4.5"/>
-          <circle
-            cx="30" cy="30" r="24" fill="none"
-            :stroke="ringColor" stroke-width="4.5"
-            stroke-linecap="round"
-            :stroke-dasharray="150.8"
-            :stroke-dashoffset="150.8 - (150.8 * completion / 100)"
-            transform="rotate(-90 30 30)"
-            style="transition: stroke-dashoffset 0.8s cubic-bezier(0.34,1.56,0.64,1), stroke 0.4s"
-          />
-          <text x="30" y="34" text-anchor="middle" fill="currentColor" font-size="10" font-family="Space Mono" font-weight="700">
-            {{ completion }}%
-          </text>
-        </svg>
-      </div>
-    </div>
+    <!-- ── Hero Header ── -->
+    <div class="hero-card anim-fade-up">
+      <div class="hero-bg-accent"></div>
+      <div class="hero-content">
+        <div class="hero-left">
+          <div class="hero-date">{{ todayFormatted }}</div>
+          <h1 class="hero-greeting">Salom, <span class="hero-name">{{ firstName }}</span>! 👋</h1>
+          <div class="hero-motivation">
+            <span v-if="completion >= 80" class="hero-mot-text hero-mot-fire">🔥 Ajoyib! Davom et!</span>
+            <span v-else-if="completion >= 50" class="hero-mot-text hero-mot-mid">⚡ Yaxshi ketmoqda!</span>
+            <span v-else-if="completion > 0"  class="hero-mot-text hero-mot-start">💪 Boshlandi, olg'a!</span>
+            <span v-else                       class="hero-mot-text hero-mot-default">🎯 Bugun nima qilasan?</span>
+          </div>
 
-    <!-- ── Quick Stats ── -->
-    <div class="quick-stats anim-fade-up stagger-1">
-      <div class="qs-item">
-        <span class="qs-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2l2.8 6.2L22 9.3l-5.5 5 1.6 7.7L12 18.5l-6.1 3.5 1.6-7.2L2 9.3l7.2-1.1z"
-              fill="#f59e0b" fill-opacity="0.3" stroke="#f59e0b" stroke-width="1.4" stroke-linejoin="round"/>
+          <!-- Mini progress bar -->
+          <div class="hero-progress-wrap">
+            <div class="hero-progress-track">
+              <div
+                class="hero-progress-bar"
+                :style="{ width: completion + '%', background: completion >= 80 ? 'linear-gradient(90deg,#00d4aa,#10b981)' : completion >= 50 ? 'linear-gradient(90deg,#f59e0b,#f97316)' : 'linear-gradient(90deg,#6c63ff,#8b5cf6)' }"
+              ></div>
+            </div>
+            <span class="hero-progress-label">{{ completion }}% bajarildi</span>
+          </div>
+        </div>
+
+        <!-- Ring -->
+        <div class="hero-ring-wrap" @click="ringPulse = !ringPulse" :class="{ 'ring-pulse': ringPulse }">
+          <svg viewBox="0 0 80 80" width="90" height="90" class="hero-ring-svg">
+            <!-- Track -->
+            <circle cx="40" cy="40" r="32" fill="none" stroke="var(--surface3)" stroke-width="6"/>
+            <!-- Progress -->
+            <circle
+              cx="40" cy="40" r="32" fill="none"
+              :stroke="ringColor" stroke-width="6"
+              stroke-linecap="round"
+              :stroke-dasharray="201"
+              :stroke-dashoffset="201 - (201 * completion / 100)"
+              transform="rotate(-90 40 40)"
+              style="transition: stroke-dashoffset 1s cubic-bezier(0.34,1.56,0.64,1), stroke 0.4s; filter: drop-shadow(0 0 8px currentColor)"
+            />
+            <!-- Inner glow circle -->
+            <circle cx="40" cy="40" r="25" :fill="ringColor + '10'"/>
+            <!-- Text -->
+            <text x="40" y="37" text-anchor="middle" fill="currentColor" font-size="13" font-family="Space Mono" font-weight="700">{{ completion }}%</text>
+            <text x="40" y="51" text-anchor="middle" fill="var(--text-dim)" font-size="8" font-family="DM Sans">bajarildi</text>
           </svg>
-        </span>
-        <span class="qs-val" style="color:var(--accent-light)">{{ dayPoints }}</span>
-        <span class="qs-label">ball</span>
+        </div>
       </div>
-      <div class="qs-divider"></div>
-      <div class="qs-item">
-        <span class="qs-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2c0 0-6 5.5-6 11a6 6 0 0 0 12 0c0-2.8-1.5-5-3.5-6.5.3 2-1 3.5-2.5 3.5-1.5 0-2.5-1.5-.5-4.5C11 6 12 2 12 2z"
-              fill="#f59e0b" fill-opacity="0.25" stroke="#f59e0b" stroke-width="1.4" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        <span class="qs-val" style="color:var(--warning)">{{ challengeDays }}</span>
-        <span class="qs-label">kun</span>
-      </div>
-      <div class="qs-divider"></div>
-      <div class="qs-item">
-        <span class="qs-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M5 13l4 4L19 7" stroke="#10b981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        <span class="qs-val" style="color:var(--success)">{{ completedCount }}<span style="font-size:12px;opacity:0.5">/{{ taskList.length }}</span></span>
-        <span class="qs-label">vazifa</span>
+
+      <!-- Stats row -->
+      <div class="hero-stats">
+        <div class="hs-item">
+          <div class="hs-icon" style="background:rgba(108,99,255,0.15);color:#8b83ff">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.8 6.2L22 9.3l-5.5 5 1.6 7.7L12 18.5l-6.1 3.5 1.6-7.2L2 9.3l7.2-1.1z" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="hs-body">
+            <div class="hs-val" style="color:var(--accent-light)">{{ dayPoints }}</div>
+            <div class="hs-label">ball</div>
+          </div>
+        </div>
+        <div class="hs-divider"></div>
+        <div class="hs-item">
+          <div class="hs-icon" style="background:rgba(245,158,11,0.15);color:#f59e0b">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2c0 0-6 5.5-6 11a6 6 0 0 0 12 0c0-2.8-1.5-5-3.5-6.5.3 2-1 3.5-2.5 3.5-1.5 0-2.5-1.5-.5-4.5C11 6 12 2 12 2z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="hs-body">
+            <div class="hs-val" style="color:var(--warning)">{{ challengeDays }}</div>
+            <div class="hs-label">kun challenge</div>
+          </div>
+        </div>
+        <div class="hs-divider"></div>
+        <div class="hs-item">
+          <div class="hs-icon" style="background:rgba(16,185,129,0.15);color:#10b981">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="hs-body">
+            <div class="hs-val" style="color:var(--success)">{{ completedCount }}<span class="hs-total">/{{ taskList.length }}</span></div>
+            <div class="hs-label">vazifa</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -81,14 +105,26 @@
       <div
         v-for="(group, cat) in groupedTemplateTasks"
         :key="'t-' + cat"
-        class="card task-card anim-fade-up"
+        class="task-card anim-fade-up"
+        :style="{ '--cat-color': catColor(cat) }"
       >
-        <div class="card-title" :style="{ color: catColor(cat) }">
-          <span class="cat-icon-wrap" :style="{ background: catColor(cat) + '1a', color: catColor(cat) }" v-html="catIcon(cat)"></span>
-          {{ catLabel(cat) }}
-          <span class="badge" :style="{ background: catColor(cat) + '20', color: catColor(cat), fontFamily: 'var(--font-mono)', fontSize: '10px', marginLeft: 'auto' }">
+        <!-- Category header -->
+        <div class="tc-header">
+          <div class="tc-icon-wrap" :style="{ background: catColor(cat) + '22', color: catColor(cat) }" v-html="catIcon(cat)"></div>
+          <span class="tc-label">{{ catLabel(cat) }}</span>
+          <div class="tc-badge" :style="{ background: catColor(cat) + '20', color: catColor(cat) }">
             {{ group.filter(t => doneIds.includes(t.id)).length }}/{{ group.length }}
-          </span>
+          </div>
+        </div>
+        <!-- Category mini progress -->
+        <div class="tc-progress-track">
+          <div
+            class="tc-progress-fill"
+            :style="{
+              width: (group.length ? group.filter(t => doneIds.includes(t.id)).length / group.length * 100 : 0) + '%',
+              background: catColor(cat)
+            }"
+          ></div>
         </div>
 
         <div class="task-list">
@@ -116,13 +152,13 @@
       </div>
 
       <!-- ── Personal Tasks ── -->
-      <div class="card my-tasks-card anim-fade-up">
-        <div class="card-title">
-          <span class="cat-icon-wrap" style="background:rgba(108,99,255,0.12);color:var(--accent-light)" v-html="icons.pencil"></span>
-          <span>Shaxsiy vazifalar</span>
-          <span class="badge badge-accent" style="margin-left:auto;font-family:var(--font-mono);font-size:10px">
+      <div class="my-tasks-card anim-fade-up">
+        <div class="tc-header my-header">
+          <div class="tc-icon-wrap" style="background:rgba(108,99,255,0.15);color:var(--accent-light)" v-html="icons.pencil"></div>
+          <span class="tc-label">Shaxsiy vazifalar</span>
+          <div class="tc-badge" style="background:rgba(108,99,255,0.12);color:var(--accent-light)">
             {{ myTasks.length }}
-          </span>
+          </div>
         </div>
 
         <div v-if="myTasks.length" class="task-list" style="margin-bottom:12px">
@@ -604,56 +640,186 @@ onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
 </script>
 
 <style scoped>
-.page { padding: 20px 16px; max-width: 680px; margin: 0 auto; width: 100%; }
-@media (min-width: 768px) { .page { padding: 32px 40px; max-width: 780px; } }
+.page { padding: 16px; max-width: 680px; margin: 0 auto; width: 100%; }
+@media (min-width: 768px) { .page { padding: 28px 40px; max-width: 780px; } }
 
 /* ── Guest Banner ── */
 .guest-banner {
   display: flex; align-items: center; justify-content: space-between;
-  background: rgba(108,99,255,0.07);
-  border: 1px solid rgba(108,99,255,0.18);
-  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; gap: 12px;
+  background: linear-gradient(135deg, rgba(108,99,255,0.08), rgba(0,212,170,0.04));
+  border: 1px solid rgba(108,99,255,0.2);
+  border-radius: var(--radius); padding: 14px 18px; margin-bottom: 16px; gap: 12px;
 }
-.guest-text span { font-weight: 600; font-size: 14px; display: block; margin-bottom: 2px; }
+.guest-text span { font-weight: 700; font-size: 14px; display: block; margin-bottom: 2px; }
 .guest-text p { font-size: 12px; color: var(--text-dim); margin: 0; }
 
-/* ── Header ── */
-.today-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+/* ── Hero Card ── */
+.hero-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
 }
-.greeting {
-  font-family: var(--font-display); font-weight: 800; font-size: 24px;
-  margin-bottom: 4px; color: var(--text); line-height: 1.2;
+[data-theme="light"] .hero-card { box-shadow: 0 4px 24px rgba(108,99,255,0.1); }
+
+.hero-bg-accent {
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(108,99,255,0.12) 0%, transparent 70%);
+  pointer-events: none;
+  border-radius: 50%;
 }
-.today-date { font-size: 13px; color: var(--text-dim); }
-@media (min-width: 768px) { .greeting { font-size: 30px; } }
 
-.ring-svg { cursor: pointer; transition: transform 0.2s; }
-.ring-svg:hover { transform: scale(1.06); }
-.ring-svg text { fill: var(--text); }
+.hero-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  gap: 12px;
+}
 
-/* ── Quick Stats ── */
-.quick-stats {
-  display: flex; align-items: center;
+.hero-left { flex: 1; min-width: 0; }
+.hero-date { font-size: 12px; color: var(--text-dim); font-weight: 500; margin-bottom: 6px; text-transform: capitalize; }
+.hero-greeting {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+@media (min-width: 768px) { .hero-greeting { font-size: 28px; } }
+.hero-name {
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-motivation { margin-bottom: 12px; }
+.hero-mot-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.hero-mot-fire   { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.hero-mot-mid    { background: rgba(108,99,255,0.1); color: var(--accent-light); }
+.hero-mot-start  { background: rgba(16,185,129,0.1); color: var(--success); }
+.hero-mot-default{ background: var(--surface2); color: var(--text-dim); }
+
+.hero-progress-wrap { display: flex; align-items: center; gap: 10px; }
+.hero-progress-track {
+  flex: 1; height: 5px;
+  background: var(--surface3);
+  border-radius: 10px; overflow: hidden;
+}
+.hero-progress-bar {
+  height: 100%; border-radius: 10px;
+  transition: width 1s var(--ease-out);
+  box-shadow: 0 0 8px currentColor;
+  animation: progressFill 1.2s var(--ease-out) both;
+}
+.hero-progress-label { font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); flex-shrink: 0; }
+
+/* Ring */
+.hero-ring-wrap {
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.2s var(--ease-spring);
+}
+.hero-ring-wrap:hover { transform: scale(1.05); }
+.hero-ring-wrap.ring-pulse { animation: glowPulse 1s ease; }
+.hero-ring-svg text { fill: var(--text); }
+
+/* Stats row */
+.hero-stats {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--border);
+  background: rgba(255,255,255,0.015);
+}
+[data-theme="light"] .hero-stats { background: rgba(108,99,255,0.02); }
+.hs-item { flex: 1; display: flex; align-items: center; gap: 10px; justify-content: center; }
+.hs-icon {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.hs-body { display: flex; flex-direction: column; }
+.hs-val {
+  font-family: var(--font-mono);
+  font-weight: 700; font-size: 18px; line-height: 1.1;
+}
+.hs-total { font-size: 12px; opacity: 0.45; }
+.hs-label { font-size: 11px; color: var(--text-dim); }
+.hs-divider { width: 1px; height: 32px; background: var(--border); }
+
+/* ── Task Cards (categories) ── */
+.task-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 16px 20px;
-  margin-bottom: 18px; box-shadow: var(--shadow-sm);
+  border-top: 3px solid var(--cat-color, var(--accent));
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  animation: fadeUp 0.35s var(--ease-out) both;
+  transition: box-shadow 0.2s, border-color 0.2s;
 }
-.qs-item {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; gap: 2px;
-}
-.qs-icon { line-height: 1; }
-.qs-val {
-  display: block; font-family: var(--font-mono); font-weight: 700;
-  font-size: 20px; line-height: 1.1;
-}
-.qs-label { font-size: 11px; color: var(--text-dim); }
-.qs-divider { width: 1px; height: 36px; background: var(--border); }
+.task-card:hover { box-shadow: var(--shadow); }
+[data-theme="light"] .task-card { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
 
-/* ── Task cards ── */
-.task-card { animation: fadeUp 0.35s var(--ease-out) both; }
+.tc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 10px;
+}
+.tc-icon-wrap {
+  width: 30px; height: 30px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.tc-icon-wrap svg { width: 16px; height: 16px; }
+.tc-label {
+  flex: 1;
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 14px; color: var(--text);
+}
+.tc-badge {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.tc-progress-track {
+  height: 3px;
+  background: var(--surface3);
+  margin: 0 16px 12px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.tc-progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.8s var(--ease-out);
+  animation: progressFill 1s var(--ease-out) both;
+  opacity: 0.7;
+}
+
+/* ── cat icon legacy wrapper ── */
 .cat-icon-wrap {
   width: 28px; height: 28px; border-radius: 8px;
   display: inline-flex; align-items: center; justify-content: center;
@@ -661,23 +827,40 @@ onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
 }
 
 /* ── Task list ── */
-.task-list { display: flex; flex-direction: column; gap: 6px; }
+.task-list { display: flex; flex-direction: column; gap: 5px; padding: 0 12px 12px; }
 
 .task-item {
   display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; background: var(--surface2);
-  border-radius: var(--radius-sm); cursor: pointer;
+  padding: 11px 12px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
   transition: all 0.18s var(--ease-out);
-  border: 1px solid transparent; user-select: none;
+  border: 1px solid transparent;
+  user-select: none;
   animation: staggerIn 0.3s var(--ease-out) both;
+  position: relative;
+  overflow: hidden;
 }
-.task-item:hover { border-color: var(--border2); background: var(--surface3); transform: translateX(2px); }
+.task-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 0;
+  background: var(--cat-color, var(--accent));
+  opacity: 0.08;
+  transition: width 0.2s;
+}
+.task-item:hover::before { width: 3px; }
+.task-item:hover { border-color: var(--border2); background: var(--surface3); transform: translateX(3px); }
 .task-item.done {
-  opacity: 0.52; background: rgba(0,212,170,0.04);
-  border-color: rgba(0,212,170,0.1);
+  opacity: 0.5;
+  background: rgba(0,212,170,0.03);
+  border-color: rgba(0,212,170,0.08);
 }
+.task-item.done::before { width: 3px; background: var(--success); opacity: 0.5; }
 .task-item-personal { border: 1px solid rgba(108,99,255,0.09); cursor: default; }
-.task-item-personal:hover { border-color: rgba(108,99,255,0.2); transform: none; }
+.task-item-personal:hover { border-color: rgba(108,99,255,0.2); transform: translateX(3px); }
 
 .task-check {
   width: 22px; height: 22px; border-radius: 7px; border: 2px solid;
@@ -719,11 +902,21 @@ onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
 [data-theme="light"] .task-delete-btn { background: rgba(239,68,68,0.06); }
 
 /* ── My Tasks Card ── */
-.my-tasks-card { border: 1px solid rgba(108,99,255,0.12); }
+.my-tasks-card {
+  background: var(--surface);
+  border: 1px solid rgba(108,99,255,0.18);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.my-tasks-card .task-list { padding: 0 12px 12px; }
 .empty-my-tasks {
-  text-align: center; padding: 20px; color: var(--text-dim); font-size: 13px;
-  border: 1px dashed var(--border2); border-radius: var(--radius-sm); margin-bottom: 12px;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-align: center; padding: 24px 16px; color: var(--text-dim); font-size: 13px;
+  border: 1.5px dashed rgba(108,99,255,0.2); border-radius: var(--radius-sm);
+  margin: 0 12px 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
 }
 
 /* ── Add task form ── */
@@ -732,105 +925,133 @@ onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
   text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
 }
 .add-task-form {
-  background: var(--surface2); border-radius: var(--radius-sm);
-  padding: 16px; margin-bottom: 4px; border: 1px solid var(--border2);
+  background: rgba(108,99,255,0.04);
+  border-radius: var(--radius-sm);
+  padding: 14px 12px;
+  margin: 0 12px 8px;
+  border: 1px solid rgba(108,99,255,0.15);
+  animation: slideDown 0.25s var(--ease-out);
 }
 .add-row { display: flex; gap: 8px; }
-
-.icon-picker-wrap { position: relative; width: 58px; flex-shrink: 0; }
-.icon-input { width: 100%; text-align: center; font-size: 18px; padding: 10px 6px; }
+.icon-picker-wrap { position: relative; width: 54px; flex-shrink: 0; }
+.icon-input { width: 100%; text-align: center; font-size: 18px; padding: 10px 4px; }
 .icon-preview {
   position: absolute; inset: 0; pointer-events: none;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0.4;
+  display: flex; align-items: center; justify-content: center; opacity: 0.35;
 }
-
 .add-actions { display: flex; gap: 8px; margin-top: 10px; }
 .add-trigger {
-  border-style: dashed; color: var(--accent-light);
-  border-color: rgba(108,99,255,0.3);
-  transition: all 0.2s;
+  margin: 0 12px 12px;
+  border: 1.5px dashed rgba(108,99,255,0.3);
+  color: var(--accent-light);
+  background: transparent;
+  font-size: 13px;
 }
-.add-trigger:hover { background: rgba(108,99,255,0.06); border-color: rgba(108,99,255,0.5); transform: none; }
+.add-trigger:hover {
+  background: rgba(108,99,255,0.06);
+  border-color: rgba(108,99,255,0.5);
+  transform: none !important;
+}
+
+/* ── My tasks header ── */
+.tc-header.my-header {
+  background: linear-gradient(135deg, rgba(108,99,255,0.07), transparent);
+  border-bottom: 1px solid rgba(108,99,255,0.1);
+  padding-bottom: 12px;
+  margin-bottom: 0;
+}
 
 /* ── Slide down transition ── */
-.slide-down-enter-active { animation: fadeUp 0.25s var(--ease-out); }
+.slide-down-enter-active { animation: slideDown 0.25s var(--ease-out); }
 .slide-down-leave-active { animation: fadeIn 0.18s ease reverse; }
 
 /* ── Modals ── */
 .confirm-modal {
-  background: var(--surface); border: 1px solid var(--border2);
-  border-radius: var(--radius); padding: 32px 28px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 32px 28px;
   width: 100%; max-width: 380px;
-  text-align: center; display: flex; flex-direction: column; gap: 14px;
-  box-shadow: var(--shadow-lg);
+  text-align: center;
+  display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  backdrop-filter: blur(20px);
 }
 .confirm-icon-wrap {
-  width: 60px; height: 60px; border-radius: 18px;
-  background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto;
+  width: 64px; height: 64px; border-radius: 20px;
+  background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25);
+  display: flex; align-items: center; justify-content: center; margin: 0 auto;
+  animation: badge-pop 0.4s var(--ease-spring);
 }
 .confirm-icon-wrap svg { width: 28px; height: 28px; }
 .confirm-modal h3 { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
-.confirm-modal p { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+.confirm-modal p { font-size: 14px; color: var(--text-dim); line-height: 1.65; }
 .confirm-modal p strong { color: var(--text); }
 .confirm-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 
 .edit-modal {
-  background: var(--surface); border: 1px solid var(--border2);
-  border-radius: var(--radius); width: 100%; max-width: 460px;
-  box-shadow: var(--shadow-lg); overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  width: 100%; max-width: 460px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  overflow: hidden;
+  backdrop-filter: blur(20px);
 }
 .edit-modal-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 20px 16px; border-bottom: 1px solid var(--border);
-  background: linear-gradient(135deg, rgba(108,99,255,0.06), rgba(0,212,170,0.02));
+  padding: 18px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(108,99,255,0.07), rgba(0,212,170,0.03));
 }
 .edit-modal-header h3 { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
 .close-btn {
   width: 32px; height: 32px; border-radius: 9px; border: none;
   background: var(--surface3); color: var(--text-dim); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.18s;
+  transition: all 0.2s var(--ease-spring);
 }
-.close-btn:hover { background: rgba(239,68,68,0.15); color: #ef4444; transform: rotate(90deg); }
+.close-btn:hover { background: rgba(239,68,68,0.15); color: #ef4444; transform: rotate(90deg) scale(1.1); }
 .edit-modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
 .edit-modal-footer {
-  display: flex; gap: 8px; padding: 16px 20px;
+  display: flex; gap: 8px; padding: 14px 20px;
   border-top: 1px solid var(--border); background: var(--surface2);
 }
 
 .login-prompt {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 36px 28px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px; padding: 36px 28px;
   width: 100%; max-width: 360px;
   text-align: center; display: flex; flex-direction: column; gap: 14px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
 }
 .lp-icon-wrap {
-  width: 64px; height: 64px; border-radius: 20px;
-  background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.2);
+  width: 70px; height: 70px; border-radius: 22px;
+  background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(0,212,170,0.08));
+  border: 1px solid rgba(108,99,255,0.2);
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto; color: var(--accent-light);
+  animation: badge-pop 0.4s var(--ease-spring);
 }
-.lp-icon-wrap svg { width: 30px; height: 30px; }
-.login-prompt h3 { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
-.login-prompt p { font-size: 14px; color: var(--text-dim); }
+.lp-icon-wrap svg { width: 32px; height: 32px; }
+.login-prompt h3 { font-family: var(--font-display); font-weight: 700; font-size: 22px; }
+.login-prompt p { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
 
 .alarm-modal {
-  background: var(--surface); border: 1px solid var(--border2);
-  border-radius: var(--radius); padding: 36px 28px;
+  background: var(--surface);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 20px; padding: 36px 28px;
   width: 100%; max-width: 360px;
   text-align: center; display: flex; flex-direction: column; gap: 14px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 60px rgba(245,158,11,0.1);
 }
-.alarm-ring-icon { font-size: 56px; animation: float 1s ease-in-out infinite; }
-.alarm-modal h3 { font-family: var(--font-mono); font-size: 32px; font-weight: 700; }
+.alarm-ring-icon { font-size: 64px; animation: float 0.8s ease-in-out infinite; }
+.alarm-modal h3 { font-family: var(--font-mono); font-size: 36px; font-weight: 700; color: var(--warning); }
 .alarm-modal p { font-size: 15px; color: var(--text-dim); }
 
 @keyframes staggerIn {
-  from { opacity: 0; transform: translateX(-8px); }
+  from { opacity: 0; transform: translateX(-10px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 @keyframes bounceIn {
@@ -840,6 +1061,22 @@ onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
 }
 @keyframes float {
   0%, 100% { transform: translateY(0) rotate(-5deg); }
-  50%       { transform: translateY(-8px) rotate(5deg); }
+  50%       { transform: translateY(-10px) rotate(5deg); }
+}
+@keyframes progressFill {
+  from { width: 0 !important; }
+}
+@keyframes glowPulse {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50%       { filter: drop-shadow(0 0 12px rgba(108,99,255,0.6)); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes badge-pop {
+  0%   { transform: scale(0.6); }
+  70%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 </style>

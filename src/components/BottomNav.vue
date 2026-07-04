@@ -115,49 +115,57 @@ const navItems = [
 <style scoped>
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
+  background: rgba(8, 11, 20, 0.82);
+  border-top: 1px solid rgba(255,255,255,0.07);
   display: flex;
-  padding: 6px 4px;
-  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  align-items: stretch;
+  padding: 4px 6px;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom));
   z-index: 100;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
-  transition: background 0.3s, border-color 0.3s;
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  box-shadow: 0 -1px 0 rgba(255,255,255,0.04), 0 -8px 32px rgba(0,0,0,0.3);
+  transition: background 0.3s;
   height: var(--nav-h);
 }
 [data-theme="light"] .bottom-nav {
-  box-shadow: 0 -4px 24px rgba(108,99,255,0.08);
+  background: rgba(255,255,255,0.88);
+  border-top: 1px solid rgba(108,99,255,0.1);
+  box-shadow: 0 -4px 20px rgba(108,99,255,0.08);
 }
 @media (min-width: 768px) { .bottom-nav { display: none; } }
 
 .nav-item {
   flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 2px;
-  padding: 4px 2px; border-radius: var(--radius-sm);
+  align-items: center; justify-content: center; gap: 3px;
+  padding: 4px 2px;
+  border-radius: 14px;
   text-decoration: none; color: var(--text-dim);
-  transition: color 0.2s; border: none; background: none;
+  transition: color 0.2s, transform 0.15s var(--ease-spring);
+  border: none; background: none;
   cursor: pointer; font-family: var(--font-body); min-width: 0;
   position: relative;
 }
-.nav-item:hover { color: var(--text); }
+.nav-item:hover { color: var(--text); transform: translateY(-1px); }
 .nav-item.active { color: var(--accent-light); }
 [data-theme="light"] .nav-item.active { color: var(--accent); }
+.nav-item:active { transform: scale(0.92) translateY(0); }
 
 .nav-icon-wrap {
   position: relative;
-  width: 32px; height: 32px;
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
+  border-radius: 12px;
+  transition: background 0.2s;
 }
 
 .nav-active-bg {
   position: absolute; inset: 0;
-  background: rgba(108,99,255,0.14);
-  border-radius: 10px;
-  animation: scaleIn 0.2s var(--ease-spring);
+  background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(108,99,255,0.1));
+  border-radius: 12px;
+  animation: navPop 0.3s var(--ease-spring);
 }
-.admin-bg { background: rgba(245,158,11,0.14); }
+.admin-bg { background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.08)); }
 [data-theme="light"] .nav-active-bg { background: rgba(108,99,255,0.1); }
 
 .nav-icon {
@@ -166,22 +174,25 @@ const navItems = [
   position: relative; z-index: 1;
   transition: transform 0.2s var(--ease-spring);
 }
-.nav-item.active .nav-icon { transform: scale(1.12); }
-.nav-item.active .nav-icon svg { filter: drop-shadow(0 0 6px rgba(108,99,255,0.5)); }
+.nav-item.active .nav-icon { transform: scale(1.1); }
+.nav-item.active .nav-icon svg { filter: drop-shadow(0 0 8px rgba(108,99,255,0.55)); }
 [data-theme="light"] .nav-item.active .nav-icon svg { filter: drop-shadow(0 0 6px rgba(108,99,255,0.3)); }
 
 .nav-label {
-  font-size: 10px; font-weight: 500;
+  font-size: 10px; font-weight: 600;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
   transition: color 0.2s;
+  letter-spacing: 0.01em;
 }
+.nav-item.active .nav-label { color: var(--accent-light); }
 
 .nav-admin { color: #f59e0b; }
 .nav-admin.active { color: #f59e0b; }
-.nav-admin.active .nav-icon svg { filter: drop-shadow(0 0 6px rgba(245,158,11,0.5)); }
+.nav-admin.active .nav-icon svg { filter: drop-shadow(0 0 8px rgba(245,158,11,0.5)); }
 
-@keyframes scaleIn {
-  from { transform: scale(0.6); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
+@keyframes navPop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  60%  { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
 }
 </style>

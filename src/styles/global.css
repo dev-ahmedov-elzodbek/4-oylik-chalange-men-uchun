@@ -378,32 +378,65 @@ body {
 /* ============================= SPLASH ============================= */
 .splash {
   min-height: 100vh; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; background: var(--bg); gap: 16px;
+  align-items: center; justify-content: center;
+  background: var(--bg); gap: 20px;
   animation: fadeIn 0.4s ease;
+  position: relative; overflow: hidden;
+}
+.splash::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(108,99,255,0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: orbFloat 10s ease-in-out infinite;
+  pointer-events: none;
+}
+.splash::after {
+  content: '';
+  position: absolute;
+  bottom: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(0,212,170,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: orbFloat 12s ease-in-out infinite reverse;
+  pointer-events: none;
 }
 .splash-logo {
-  width: 80px; height: 80px;
+  width: 88px; height: 88px;
   background: linear-gradient(135deg, var(--accent), #8b5cf6);
-  border-radius: 24px;
+  border-radius: 26px;
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-weight: 800; font-size: 30px; color: white;
-  box-shadow: 0 0 0 0 rgba(108,99,255,0.4);
-  animation: bounceIn 0.6s var(--ease-spring), glow 2s ease 0.6s infinite;
+  font-family: var(--font-display); font-weight: 800; font-size: 32px; color: white;
+  box-shadow: 0 8px 32px rgba(108,99,255,0.5);
+  animation: bounceIn 0.6s var(--ease-spring), glow 2.5s ease 0.8s infinite;
+  position: relative; z-index: 1;
 }
 .splash-name {
-  font-family: var(--font-display); font-weight: 800; font-size: 28px; color: var(--text);
+  font-family: var(--font-display); font-weight: 800; font-size: 30px;
+  background: linear-gradient(135deg, var(--text) 40%, var(--accent-light));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   animation: fadeUp 0.4s var(--ease-out) 0.3s both;
+  position: relative; z-index: 1;
 }
 .splash-sub {
-  font-size: 13px; color: var(--text-dim);
-  animation: fadeUp 0.4s var(--ease-out) 0.4s both;
+  font-size: 14px; color: var(--text-dim);
+  animation: fadeUp 0.4s var(--ease-out) 0.42s both;
+  position: relative; z-index: 1; letter-spacing: 0.01em;
 }
 .splash-loader {
-  width: 140px; height: 3px; background: var(--surface2);
-  border-radius: 2px; overflow: hidden; margin-top: 8px;
-  animation: fadeUp 0.4s var(--ease-out) 0.5s both;
+  width: 160px; height: 3px; background: var(--surface3);
+  border-radius: 10px; overflow: hidden; margin-top: 4px;
+  animation: fadeUp 0.4s var(--ease-out) 0.54s both;
+  position: relative; z-index: 1;
 }
-.loader-bar { height: 100%; background: linear-gradient(90deg, var(--accent), #00d4aa); border-radius: 2px; animation: loading 1.4s ease infinite; }
+.loader-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2), #8b5cf6, var(--accent));
+  background-size: 300% 100%;
+  border-radius: 10px;
+  animation: loading 1.5s ease infinite, shimmer 2s linear infinite;
+}
 
 /* ============================= DESKTOP GRID ============================= */
 @media (min-width: 768px) {
@@ -448,3 +481,155 @@ body {
 /* ============================= LOADING STATE ============================= */
 .loading-state { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 48px; color: var(--text-dim); }
 .loading-spinner { width: 22px; height: 22px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+/* ============================= EXTRA KEYFRAMES ============================= */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes orbFloat {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(30px,-20px) scale(1.08); }
+  66%      { transform: translate(-20px,15px) scale(0.95); }
+}
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes ripple {
+  from { transform: scale(0); opacity: 0.4; }
+  to   { transform: scale(4); opacity: 0; }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes checkPop {
+  0%   { transform: scale(0) rotate(-20deg); }
+  60%  { transform: scale(1.3) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@keyframes progressFill {
+  from { width: 0%; }
+}
+@keyframes glowPulse {
+  0%,100% { box-shadow: 0 0 20px rgba(108,99,255,0.2); }
+  50%     { box-shadow: 0 0 40px rgba(108,99,255,0.5), 0 0 80px rgba(108,99,255,0.15); }
+}
+@keyframes tiltIn {
+  from { opacity: 0; transform: perspective(400px) rotateX(8deg) translateY(20px); }
+  to   { opacity: 1; transform: perspective(400px) rotateX(0) translateY(0); }
+}
+@keyframes morphBg {
+  0%   { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  50%  { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+}
+@keyframes particleDrift {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+  100% { transform: translateY(-120vh) rotate(720deg); opacity: 0; }
+}
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes badge-pop {
+  0%   { transform: scale(0.7); }
+  70%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* ============================= GLASS CARD ============================= */
+.glass-card {
+  background: rgba(15,19,32,0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--radius);
+}
+[data-theme="light"] .glass-card {
+  background: rgba(255,255,255,0.75);
+  border-color: rgba(108,99,255,0.12);
+}
+
+/* ============================= GRADIENT BORDERS ============================= */
+.grad-border {
+  position: relative;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+.grad-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent), #00d4aa, #8b5cf6);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ============================= RIPPLE BUTTON ============================= */
+.btn-ripple { position: relative; overflow: hidden; }
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  transform: translate(-50%,-50%) scale(0);
+  pointer-events: none;
+}
+.btn-ripple:active::after { animation: ripple 0.5s ease; }
+
+/* ============================= HIGHLIGHT ROW ============================= */
+.highlight-row {
+  background: linear-gradient(90deg, var(--accent-dim), transparent);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* ============================= NUMBER ANIM ============================= */
+.num-anim { animation: countUp 0.5s var(--ease-spring) both; }
+
+/* ============================= PROGRESS PILL ============================= */
+.progress-track {
+  height: 6px;
+  background: var(--surface3);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.progress-fill-bar {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  animation: progressFill 1s var(--ease-out) both;
+  transition: width 0.8s var(--ease-out);
+}
+
+/* ============================= SKELETON ============================= */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================= SLIDE-DOWN TRANSITION ============================= */
+.slide-down-enter-active { animation: slideDown 0.28s var(--ease-out); }
+.slide-down-leave-active { animation: slideDown 0.2s ease reverse; }
+
+/* ============================= EXTRA STAGGER ============================= */
+.stagger-7  { animation-delay: 0.35s; }
+.stagger-8  { animation-delay: 0.40s; }
+.stagger-9  { animation-delay: 0.45s; }
+.stagger-10 { animation-delay: 0.50s; }

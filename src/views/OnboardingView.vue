@@ -532,7 +532,10 @@ async function finish() {
       })
       .eq('id', auth.user?.id)
 
-    if (error) throw error
+    if (error) {
+      console.error('Supabase error:', error.code, error.message, error.details, error.hint)
+      throw new Error(error.message || JSON.stringify(error))
+    }
 
     if (form.value.timeBlocks.length) {
       const valid = form.value.timeBlocks.filter(b => b.title)
