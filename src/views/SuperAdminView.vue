@@ -97,7 +97,7 @@
         <div class="card-title">📋 Barcha admin namunalari ({{ allTemplates.length }})</div>
         <div class="template-list">
           <div v-for="task in allTemplates" :key="task.id" class="template-item">
-            <span class="task-icon">{{ task.icon }}</span>
+            <span class="task-icon" v-html="getTaskIcon(task.icon, task.category)"></span>
             <div class="template-info">
               <div class="template-title">{{ task.title }}</div>
               <div class="template-meta">
@@ -334,6 +334,21 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import { supabase } from '../supabase.js'
+import { icons } from '../icons.js'
+
+// ── Icon resolver: key → SVG, aks holda emoji/matn ──
+function catIcon(c) {
+  return {
+    study: icons.book, sport: icons.dumbbell, language: icons.globe,
+    self: icons.star, nutrition: icons.salad, custom: icons.pencil,
+  }[c] || icons['check-task']
+}
+function getTaskIcon(icon, cat) {
+  if (!icon || icon === '') return catIcon(cat)
+  if (icons[icon]) return icons[icon]
+  if (typeof icon === 'string' && icon.trim().startsWith('<svg')) return icon
+  return `<span style="font-size:15px;line-height:1;display:inline-flex">${icon}</span>`
+}
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -660,7 +675,15 @@ onMounted(loadData)
 
 .template-list { display: flex; flex-direction: column; gap: 8px; }
 .template-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface2); border-radius: var(--radius-sm); }
-.task-icon { font-size: 18px; flex-shrink: 0; }
+.task-icon {
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(108,99,255,0.12);
+  color: var(--accent-light);
+  border-radius: 10px;
+}
+.task-icon :deep(svg) { width: 18px; height: 18px; }
 .template-info { flex: 1; min-width: 0; }
 .template-title { font-size: 14px; margin-bottom: 4px; }
 .template-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
