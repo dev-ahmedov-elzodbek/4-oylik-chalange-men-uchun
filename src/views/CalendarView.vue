@@ -1,23 +1,29 @@
 <template>
   <div class="page">
-    <div class="page-header"><h1>{{ t('nav.calendar') }}</h1></div>
-
-    <div class="month-nav card">
-      <button class="nav-btn" @click="prevMonth">‹</button>
-      <div class="month-title">
-        <span>{{ months[currentMonth] }}</span>
-        <span class="year-label">{{ currentYear }}</span>
-      </div>
-      <button class="nav-btn" @click="nextMonth">›</button>
+    <div class="cal-page-header anim-fade-up">
+      <h1 class="cal-h1">{{ t('nav.calendar') }}</h1>
     </div>
 
-    <div class="card cal-card">
+    <div class="month-nav anim-fade-up">
+      <button class="nav-btn" @click="prevMonth">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="month-title">
+        <span class="month-name">{{ months[currentMonth] }}</span>
+        <span class="year-label">{{ currentYear }}</span>
+      </div>
+      <button class="nav-btn" @click="nextMonth">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+    <div class="cal-card anim-fade-up stagger-1">
       <div class="cal-weekdays">
         <div v-for="d in ['Du','Se','Ch','Pa','Ju','Sh','Ya']" :key="d" class="wd">{{ d }}</div>
       </div>
       <div class="cal-grid">
         <div v-for="(day, i) in calDays" :key="i" class="cal-day"
-          :class="{ empty: !day, today: day && isToday(day), selected: day && isSelected(day) }"
+          :class="{ empty: !day, today: day && isToday(day), selected: day && isSelected(day), complete: day && tasks.getDayCompletion(dateStr(day)) === 100 }"
           @click="day && selectDay(day)">
           <template v-if="day">
             <span class="day-num">{{ day.getDate() }}</span>
@@ -30,21 +36,26 @@
       </div>
     </div>
 
-    <div v-if="selectedDay" class="card">
-      <div class="card-title">
-        📅 {{ formatDay(selectedDay) }}
-        <span class="sel-pct" :style="{ color: barColor(selectedDay) }">{{ tasks.getDayCompletion(dateStr(selectedDay)) }}%</span>
-      </div>
-      <div class="sel-tasks">
-        <div v-for="task in tasks.tasks" :key="task.id" class="sel-task"
-          :class="{ done: tasks.isCompleted(task.id, dateStr(selectedDay)) }"
-          @click="toggleTask(task.id)">
-          <span class="sel-check">{{ tasks.isCompleted(task.id, dateStr(selectedDay)) ? '✓' : '○' }}</span>
-          {{ task.icon }} {{ task.title }}
+    <transition name="panel-slide">
+      <div v-if="selectedDay" class="sel-card anim-fade-up stagger-2" :key="dateStr(selectedDay)">
+        <div class="sel-header">
+          <div class="sel-icon">📅</div>
+          <span class="sel-day-title">{{ formatDay(selectedDay) }}</span>
+          <span class="sel-pct" :style="{ color: barColor(selectedDay), background: barColor(selectedDay) + '18' }">{{ tasks.getDayCompletion(dateStr(selectedDay)) }}%</span>
         </div>
-        <div v-if="!tasks.tasks?.length" class="empty-state">Vazifalar yo'q</div>
+        <div class="sel-tasks">
+          <div v-for="task in tasks.tasks" :key="task.id" class="sel-task"
+            :class="{ done: tasks.isCompleted(task.id, dateStr(selectedDay)) }"
+            @click="toggleTask(task.id)">
+            <span class="sel-check" :class="{ checked: tasks.isCompleted(task.id, dateStr(selectedDay)) }">
+              {{ tasks.isCompleted(task.id, dateStr(selectedDay)) ? '✓' : '' }}
+            </span>
+            <span class="sel-task-name">{{ task.icon }} {{ task.title }}</span>
+          </div>
+          <div v-if="!tasks.tasks?.length" class="empty-state">Vazifalar yo'q</div>
+        </div>
       </div>
-    </div>
+    </transition>
 
     <div style="height:20px"></div>
   </div>
@@ -105,35 +116,114 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page { padding: 20px 16px; max-width: 700px; margin: 0 auto; }
-@media(min-width:768px){ .page { padding: 32px 40px; max-width: 860px; } }
-.page-header { margin-bottom: 24px; }
-.page-header h1 { font-family: var(--font-display); font-weight: 800; font-size: 24px; }
+.page { padding: 16px; max-width: 700px; margin: 0 auto; }
+@media(min-width:768px){ .page { padding: 28px 40px; max-width: 860px; } }
+.cal-page-header { margin-bottom: 16px; }
+.cal-h1 {
+  font-family: var(--font-display); font-weight: 800; font-size: 26px;
+  background: linear-gradient(135deg, var(--text) 50%, var(--accent-light));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
 
-.month-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 12px; }
-.month-title { text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 17px; }
-.year-label { display: block; font-size: 12px; color: var(--text-dim); font-weight: 400; margin-top: 2px; }
-.nav-btn { background: none; border: none; font-size: 22px; color: var(--text-dim); cursor: pointer; padding: 4px 10px; border-radius: 8px; transition: background 0.2s; }
-.nav-btn:hover { background: var(--surface2); }
+/* ── Month nav ── */
+.month-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; margin-bottom: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.month-title { text-align: center; }
+.month-name { font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+.year-label { display: block; font-size: 12px; color: var(--text-dim); font-weight: 400; margin-top: 2px; font-family: var(--font-mono); }
+.nav-btn {
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text-dim); cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.2s var(--ease-spring);
+}
+.nav-btn:hover { background: rgba(108,99,255,0.12); color: var(--accent-light); border-color: rgba(108,99,255,0.3); transform: scale(1.08); }
 
-.cal-card { padding: 14px 10px; }
-.cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 6px; }
-.wd { text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); padding: 4px 0; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.cal-day { aspect-ratio: 1; border-radius: 8px; padding: 4px 3px 3px; cursor: pointer; position: relative; display: flex; flex-direction: column; align-items: center; transition: background 0.15s; min-height: 36px; }
-.cal-day:hover:not(.empty) { background: var(--surface2); }
+/* ── Calendar grid ── */
+.cal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 12px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; }
+.wd { text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); padding: 4px 0; font-weight: 700; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-day {
+  aspect-ratio: 1; border-radius: 10px;
+  padding: 5px 3px 4px; cursor: pointer; position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  transition: all 0.18s var(--ease-spring);
+  min-height: 38px;
+  border: 1px solid transparent;
+}
+.cal-day:hover:not(.empty) { background: var(--surface2); transform: scale(1.06); border-color: var(--border2); }
 .cal-day.empty { cursor: default; }
-.cal-day.today { background: rgba(108,99,255,0.12); }
-.cal-day.selected { background: var(--accent); }
+.cal-day.today {
+  background: rgba(108,99,255,0.12);
+  border-color: rgba(108,99,255,0.35);
+  box-shadow: 0 0 12px rgba(108,99,255,0.2);
+}
+.cal-day.selected {
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  box-shadow: 0 4px 14px rgba(108,99,255,0.45);
+}
 .cal-day.selected .day-num { color: white; }
-.day-num { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text); line-height: 1; margin-bottom: 3px; }
-.day-bar { width: 100%; height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
-.day-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
-.day-star { font-size: 9px; color: #f59e0b; position: absolute; top: 2px; right: 2px; }
+.cal-day.complete .day-num { color: #f59e0b; }
+.day-num { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 4px; }
+.day-bar { width: 100%; height: 3px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.day-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s var(--ease-out); }
+.day-star { font-size: 10px; color: #f59e0b; position: absolute; top: 2px; right: 3px; animation: starPop 0.4s var(--ease-spring), starGlow 2s ease infinite; }
 
+/* ── Selected day ── */
+.sel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.sel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.sel-icon { font-size: 18px; }
+.sel-day-title { font-family: var(--font-display); font-weight: 700; font-size: 15px; flex: 1; }
+.sel-pct { font-family: var(--font-mono); font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 8px; }
 .sel-tasks { display: flex; flex-direction: column; gap: 6px; }
-.sel-task { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface2); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; transition: opacity 0.2s; }
-.sel-task.done { opacity: 0.6; }
-.sel-check { font-size: 16px; flex-shrink: 0; width: 20px; color: var(--accent-light); }
-.sel-pct { margin-left: auto; font-family: var(--font-mono); font-size: 13px; }
+.sel-task {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 12px; background: var(--surface2);
+  border-radius: var(--radius-sm); cursor: pointer;
+  font-size: 14px; transition: all 0.18s;
+}
+.sel-task:hover { background: var(--surface3); transform: translateX(2px); }
+.sel-task.done { opacity: 0.55; }
+.sel-task.done .sel-task-name { text-decoration: line-through; color: var(--text-dim); }
+.sel-check {
+  width: 22px; height: 22px; flex-shrink: 0;
+  border: 2px solid var(--border3); border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: white; font-weight: 700;
+  transition: all 0.2s var(--ease-spring);
+}
+.sel-check.checked { background: var(--accent); border-color: var(--accent); }
+.sel-task-name { flex: 1; }
+
+/* ── Transitions ── */
+.panel-slide-enter-active { animation: panelSlide 0.3s var(--ease-out); }
+.panel-slide-leave-active { animation: fadeIn 0.15s ease reverse; }
+
+@keyframes panelSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes starPop { 0% { transform: scale(0) rotate(-30deg); } 70% { transform: scale(1.4); } 100% { transform: scale(1); } }
+@keyframes starGlow { 0%,100% { filter: drop-shadow(0 0 0 transparent); } 50% { filter: drop-shadow(0 0 4px #f59e0b); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>

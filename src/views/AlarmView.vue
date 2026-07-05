@@ -1,30 +1,35 @@
 <template>
   <div class="page">
-    <div class="page-header">
-      <h1>⏰ Budilnik</h1>
-      <button class="btn btn-primary btn-sm" @click="openAdd">+ Qo'shish</button>
+    <div class="alarm-header anim-fade-up">
+      <h1 class="alarm-h1">⏰ Budilnik</h1>
+      <button class="btn btn-primary btn-sm btn-ripple" @click="openAdd">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Qo'shish
+      </button>
     </div>
 
-    <!-- Hozirgi vaqt -->
-    <div class="clock-card card">
+    <!-- Hero clock -->
+    <div class="clock-card anim-fade-up">
+      <div class="clock-glow"></div>
       <div class="clock-time">{{ currentTime }}</div>
       <div class="clock-date">{{ currentDate }}</div>
       <div class="clock-status" :class="notifGranted ? 'status-ok' : 'status-warn'">
+        <span class="status-dot"></span>
         {{ notifGranted ? 'Bildirishnomalar yoqilgan' : 'Bildirishnomalarni yoqing' }}
       </div>
-      <button v-if="!notifGranted" class="btn btn-outline btn-sm" style="margin-top:10px" @click="requestNotif">
+      <button v-if="!notifGranted" class="btn btn-outline btn-sm" style="margin-top:12px" @click="requestNotif">
         Yoqish
       </button>
     </div>
 
-    <!-- Budilniklar ro'yxati -->
-    <div v-if="alarm.alarms.length === 0" class="empty-card card">
-      <div style="font-size:48px">⏰</div>
-      <div style="font-size:15px;font-weight:600;margin-top:8px">Budilnik yo'q</div>
-      <div style="font-size:13px;color:var(--text-dim);margin-top:4px">Yangi budilnik qo'shing</div>
+    <!-- Empty state -->
+    <div v-if="alarm.alarms.length === 0" class="empty-card anim-fade-up stagger-1">
+      <div class="empty-icon">⏰</div>
+      <div class="empty-title">Budilnik yo'q</div>
+      <div class="empty-sub">Yangi budilnik qo'shing</div>
     </div>
 
-    <div v-for="a in alarm.alarms" :key="a.id" class="alarm-item card">
+    <div v-for="(a, ai) in alarm.alarms" :key="a.id" class="alarm-item anim-fade-up" :class="{ 'is-active': a.is_active }" :style="{ animationDelay: (0.05 + ai * 0.05) + 's' }">
       <div class="alarm-main">
         <div>
           <div class="alarm-time" :class="{ 'alarm-inactive': !a.is_active }">{{ a.time }}</div>
@@ -192,28 +197,92 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.page { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
-.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.page-header h1 { font-family: var(--font-display); font-weight: 800; font-size: 24px; }
+.page { padding: 16px; max-width: 600px; margin: 0 auto; }
+.alarm-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.alarm-h1 { font-family: var(--font-display); font-weight: 800; font-size: 24px; }
+.alarm-header .btn { gap: 5px; }
 
-.clock-card { text-align: center; padding: 28px 20px; }
-.clock-time { font-family: var(--font-mono); font-size: 52px; font-weight: 700; letter-spacing: 4px; background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.clock-date { font-size: 14px; color: var(--text-dim); margin-top: 6px; }
-.clock-status { font-size: 12px; margin-top: 10px; padding: 4px 12px; border-radius: 20px; display: inline-block; }
-.status-ok { background: rgba(0,212,170,0.1); color: #00d4aa; }
-.status-warn { background: rgba(245,158,11,0.1); color: #f59e0b; }
+/* ── Hero clock ── */
+.clock-card {
+  position: relative;
+  text-align: center;
+  padding: 32px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.clock-glow {
+  position: absolute;
+  top: -80px; left: 50%; transform: translateX(-50%);
+  width: 260px; height: 200px;
+  background: radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.clock-time {
+  position: relative;
+  font-family: var(--font-mono); font-size: 52px; font-weight: 700; letter-spacing: 4px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+@media (max-width: 380px) { .clock-time { font-size: 42px; letter-spacing: 2px; } }
+.clock-date { position: relative; font-size: 14px; color: var(--text-dim); margin-top: 6px; text-transform: capitalize; }
+.clock-status {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; margin-top: 12px;
+  padding: 5px 14px; border-radius: 20px;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: statusBlink 1.5s ease infinite; }
+.status-ok { background: rgba(0,212,170,0.12); color: #00d4aa; }
+.status-warn { background: rgba(245,158,11,0.12); color: #f59e0b; }
 
-.empty-card { text-align: center; padding: 48px 20px; }
+/* ── Empty ── */
+.empty-card {
+  text-align: center; padding: 48px 20px;
+  background: var(--surface);
+  border: 1.5px dashed var(--border2);
+  border-radius: var(--radius);
+}
+.empty-icon { font-size: 52px; animation: float 2.5s ease-in-out infinite; }
+.empty-title { font-size: 16px; font-weight: 700; margin-top: 10px; font-family: var(--font-display); }
+.empty-sub { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
 
-.alarm-item { padding: 16px; }
+/* ── Alarm item ── */
+.alarm-item {
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--surface3);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s var(--ease-out);
+}
+.alarm-item.is-active { border-left-color: #f59e0b; }
+.alarm-item:hover { box-shadow: var(--shadow); transform: translateX(2px); }
 .alarm-main { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.alarm-time { font-family: var(--font-mono); font-size: 36px; font-weight: 700; letter-spacing: 2px; }
-.alarm-inactive { opacity: 0.4; }
-.alarm-label { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
-.alarm-days { display: flex; gap: 4px; margin-top: 8px; }
-.day-dot { font-size: 11px; width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--surface2); color: var(--text-dim); font-weight: 600; }
-.day-dot.active { background: var(--accent); color: white; }
+.alarm-time {
+  font-family: var(--font-mono); font-size: 36px; font-weight: 700; letter-spacing: 2px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.alarm-inactive { opacity: 0.35; -webkit-text-fill-color: var(--text-dim); background: none; }
+.alarm-label { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+.alarm-days { display: flex; gap: 4px; margin-top: 10px; }
+.day-dot {
+  font-size: 11px; width: 26px; height: 26px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface2); color: var(--text-dim); font-weight: 700;
+  transition: all 0.2s;
+}
+.day-dot.active { background: linear-gradient(135deg, var(--accent), #8b5cf6); color: white; box-shadow: 0 2px 6px rgba(108,99,255,0.35); }
 .alarm-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+@keyframes statusBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
 /* Toggle switch */
 .toggle { position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer; }
