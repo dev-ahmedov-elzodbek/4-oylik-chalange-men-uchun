@@ -72,13 +72,11 @@
           </div>
         </div>
         <div class="hs-divider"></div>
-        <div class="hs-item">
-          <div class="hs-icon" style="background:rgba(245,158,11,0.15);color:#f59e0b">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2c0 0-6 5.5-6 11a6 6 0 0 0 12 0c0-2.8-1.5-5-3.5-6.5.3 2-1 3.5-2.5 3.5-1.5 0-2.5-1.5-.5-4.5C11 6 12 2 12 2z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-          </div>
+        <div class="hs-item hs-streak" :title="'Ketma-ketlik: ' + streakInfo.label">
+          <div class="hs-streak-emoji" :class="{ ablaze: streak.current >= 3 }">{{ streakInfo.emoji }}</div>
           <div class="hs-body">
-            <div class="hs-val" style="color:var(--warning)">{{ challengeDays }}</div>
-            <div class="hs-label">kun challenge</div>
+            <div class="hs-val" :style="{ color: streakInfo.color }">{{ streak.current }}</div>
+            <div class="hs-label">kun streak</div>
           </div>
         </div>
         <div class="hs-divider"></div>
@@ -92,6 +90,22 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- ── Quick links ── -->
+    <div class="quick-links anim-fade-up stagger-1">
+      <router-link to="/leaderboard" class="ql-btn">
+        <span class="ql-emoji">🏆</span>
+        <span class="ql-text">Reyting</span>
+      </router-link>
+      <router-link to="/stats" class="ql-btn">
+        <span class="ql-emoji">📊</span>
+        <span class="ql-text">Statistika</span>
+      </router-link>
+      <router-link to="/schedule" class="ql-btn">
+        <span class="ql-emoji">🗓️</span>
+        <span class="ql-text">Jadval</span>
+      </router-link>
     </div>
 
     <!-- ── Loading ── -->
@@ -359,8 +373,17 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from '../supabase.js'
 import { useAuthStore } from '../stores/auth.js'
 import { icons } from '../icons.js'
+import { playCheck, playUncheck, celebrate } from '../utils/feedback.js'
+import { getStreak, streakTier } from '../utils/streak.js'
 
 const authStore = useAuthStore()
+
+// ── Streak ──
+const streak = ref({ current: 0, longest: 0 })
+const streakInfo = computed(() => streakTier(streak.value.current))
+async function loadStreak() {
+  if (authStore.user?.id) streak.value = await getStreak(authStore.user.id)
+}
 
 const today     = new Date()
 const todayStr  = today.toISOString().split('T')[0]
@@ -494,13 +517,21 @@ async function handleTaskClick(taskId) {
   if (!authStore.user?.id) { showLoginPrompt.value = true; return }
   const uid = authStore.user.id
   const isDone = doneIds.value.includes(taskId)
+  const wasComplete = completion.value >= 100
   if (isDone) {
+    playUncheck()
     await supabase.from('task_completions').delete()
       .eq('user_id', uid).eq('task_id', taskId).eq('completed_date', todayStr)
     doneIds.value = doneIds.value.filter(id => id !== taskId)
   } else {
+    playCheck()
     await supabase.from('task_completions').insert({ user_id: uid, task_id: taskId, completed_date: todayStr })
     doneIds.value.push(taskId)
+    // Endigina 100% ga yetdi — nishonlaymiz!
+    if (!wasComplete && completion.value >= 100) {
+      celebrate({ origin: { x: 0.5, y: 0.3 } })
+    }
+    loadStreak()
   }
 }
 
@@ -632,6 +663,7 @@ function checkAlarms() {
 
 onMounted(() => {
   loadTasks()
+  loadStreak()
   requestNotificationPermission()
   alarmInterval = setInterval(checkAlarms, 10000)
   checkAlarms()
@@ -763,6 +795,37 @@ onUnmounted(() => { if (alarmInterval) clearInterval(alarmInterval) })
 .hs-total { font-size: 12px; opacity: 0.45; }
 .hs-label { font-size: 11px; color: var(--text-dim); }
 .hs-divider { width: 1px; height: 32px; background: var(--border); }
+
+/* ── Quick links ── */
+.quick-links { display: flex; gap: 8px; margin-bottom: 14px; }
+.ql-btn {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 12px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text);
+  font-size: 13px; font-weight: 600;
+  transition: all 0.2s var(--ease-spring);
+  box-shadow: var(--shadow-sm);
+}
+.ql-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--border2);
+  box-shadow: var(--shadow);
+}
+.ql-emoji { font-size: 16px; }
+@media (max-width: 380px) { .ql-text { font-size: 12px; } }
+
+/* ── Streak ── */
+.hs-streak-emoji { font-size: 22px; line-height: 1; flex-shrink: 0; }
+.hs-streak-emoji.ablaze { animation: flameFlicker 1.2s ease-in-out infinite; }
+@keyframes flameFlicker {
+  0%, 100% { transform: scale(1) rotate(-3deg); filter: drop-shadow(0 0 3px rgba(245,158,11,0.5)); }
+  50%       { transform: scale(1.15) rotate(3deg); filter: drop-shadow(0 0 8px rgba(239,68,68,0.7)); }
+}
 
 /* ── Task Cards (categories) ── */
 .task-card {

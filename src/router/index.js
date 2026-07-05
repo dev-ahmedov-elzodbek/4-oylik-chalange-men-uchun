@@ -18,6 +18,7 @@ const routes = [
   { path: '/today', component: () => import('../views/TodayView.vue') },
   { path: '/calendar', component: () => import('../views/CalendarView.vue') },
   { path: '/stats', component: () => import('../views/StatsView.vue') },
+  { path: '/leaderboard', component: () => import('../views/LeaderboardView.vue') },
   { path: '/schedule', component: () => import('../views/ScheduleView.vue') },
   { path: '/alarm', component: () => import('../views/AlarmView.vue'), meta: { auth: true } },
   { path: '/nutrition', component: () => import('../views/NutritionView.vue') },

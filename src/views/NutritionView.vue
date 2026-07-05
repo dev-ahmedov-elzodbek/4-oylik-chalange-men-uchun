@@ -136,6 +136,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth.js'
 import { useNutritionStore } from '../stores/nutrition.js'
+import { supabase } from '../supabase.js'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -218,33 +219,20 @@ async function analyzeImage() {
   if (!imageBase64.value) return
   aiLoading.value = true; aiError.value = ''; aiSuccess.value = ''
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 500,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64.value } },
-            { type: 'text', text: `Bu rasmda qanday ovqat bor? Taxminiy kaloriya, oqsil, uglevod va yog' miqdorini aniqlang. Faqat JSON formatida javob bering: {"meal_name": "ovqat nomi uzbekcha", "calories": 000, "protein_g": 00, "carbs_g": 00, "fat_g": 00}` }
-          ]
-        }]
-      })
+    // AI kaliti serverda (Edge Function) — brauzerdan chaqirmaymiz
+    const { data, error } = await supabase.functions.invoke('analyze-food', {
+      body: { image_base64: imageBase64.value, media_type: 'image/jpeg' }
     })
-    const data = await res.json()
-    const text = data.content?.[0]?.text || ''
-    const match = text.match(/\{[\s\S]*\}/)
-    if (!match) throw new Error('parse error')
-    const r = JSON.parse(match[0])
-    addForm.value.meal_name = r.meal_name || ''
-    addForm.value.calories = r.calories || null
-    addForm.value.protein_g = r.protein_g || null
-    addForm.value.carbs_g = r.carbs_g || null
-    addForm.value.fat_g = r.fat_g || null
-    aiSuccess.value = `"${r.meal_name}" aniqlandi — ${r.calories} kcal`
-  } catch {
+    if (error) throw error
+    if (data?.error) throw new Error(data.error)
+
+    addForm.value.meal_name = data.meal_name || ''
+    addForm.value.calories = data.calories || null
+    addForm.value.protein_g = data.protein_g || null
+    addForm.value.carbs_g = data.carbs_g || null
+    addForm.value.fat_g = data.fat_g || null
+    aiSuccess.value = `"${data.meal_name}" aniqlandi — ${data.calories} kcal`
+  } catch (e) {
     aiError.value = 'Tahlil qilib bo\'lmadi. Qo\'lda kiriting.'
   } finally {
     aiLoading.value = false

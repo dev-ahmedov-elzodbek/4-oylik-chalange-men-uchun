@@ -1,12 +1,33 @@
 <template>
   <div class="page">
-    <div class="page-header"><h1>{{ t('nav.stats') }}</h1></div>
+    <div class="stats-page-header">
+      <h1>{{ t('nav.stats') }}</h1>
+      <button class="share-btn" :disabled="sharing" @click="doShare">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        {{ sharing ? '...' : 'Ulashish' }}
+      </button>
+    </div>
 
     <div class="stats-grid">
       <div class="stat-card" v-for="s in mainStats" :key="s.label">
         <div class="sc-icon">{{ s.icon }}</div>
         <div class="sc-val" :style="{ color: s.color }">{{ s.value }}</div>
         <div class="sc-label">{{ s.label }}</div>
+      </div>
+    </div>
+
+    <!-- ── Streak card ── -->
+    <div class="card streak-card">
+      <div class="streak-flame" :class="{ ablaze: streak.current >= 3 }">{{ streakInfo.emoji }}</div>
+      <div class="streak-body">
+        <div class="streak-current">
+          <span class="streak-num" :style="{ color: streakInfo.color }">{{ streak.current }}</span>
+          <span class="streak-unit">kun ketma-ket</span>
+        </div>
+        <div class="streak-meta">
+          <span class="streak-tier" :style="{ color: streakInfo.color, background: streakInfo.color + '18' }">{{ streakInfo.label }}</span>
+          <span class="streak-best">🏆 Rekord: {{ streak.longest }} kun</span>
+        </div>
       </div>
     </div>
 
@@ -59,10 +80,32 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth.js'
 import { useTasksStore } from '../stores/tasks.js'
+import { getStreak, streakTier } from '../utils/streak.js'
+import { shareReport } from '../utils/share.js'
 
 const { t } = useI18n()
 const auth = useAuthStore()
 const tasks = useTasksStore()
+
+const streak = ref({ current: 0, longest: 0 })
+const streakInfo = computed(() => streakTier(streak.value.current))
+
+const sharing = ref(false)
+async function doShare() {
+  sharing.value = true
+  try {
+    const weekPct = Math.round(last7.value.reduce((s, d) => s + tasks.getDayCompletion(ds(d)), 0) / 7)
+    await shareReport({
+      name: auth.profile?.full_name?.split(' ')[0] || 'Men',
+      streak: streak.value.current,
+      weekPct,
+      points: totalPts.value,
+      level: currentLevel.value.name,
+      days: last7.value.map(d => ({ label: dayShort(d), pct: tasks.getDayCompletion(ds(d)) })),
+    })
+  } catch (e) { console.error(e) }
+  finally { sharing.value = false }
+}
 
 const today = new Date()
 function ds(d) { return d.toISOString().split('T')[0] }
@@ -122,18 +165,30 @@ function nextQuote() { qIdx.value = (qIdx.value + 1) % quotes.length }
 onMounted(async () => {
   await tasks.fetchTasks()
   for (const d of last7.value) await tasks.fetchCompletions(ds(d))
+  if (auth.user?.id) streak.value = await getStreak(auth.user.id)
 })
 </script>
 
 <style scoped>
 .page { padding: 16px; max-width: 700px; margin: 0 auto; }
 @media(min-width:768px){ .page { padding: 28px 40px; max-width: 860px; } }
-.page-header { margin-bottom: 20px; }
-.page-header h1 {
+.stats-page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.stats-page-header h1 {
   font-family: var(--font-display); font-weight: 800; font-size: 26px;
   background: linear-gradient(135deg, var(--text) 0%, var(--text-dim) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
+.share-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 16px; border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  color: white; border: none; cursor: pointer;
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  box-shadow: 0 4px 14px rgba(108,99,255,0.3);
+  transition: all 0.2s var(--ease-out);
+}
+.share-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,99,255,0.45); }
+.share-btn:disabled { opacity: 0.6; cursor: default; }
 
 /* ── Stat cards ── */
 .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
@@ -173,6 +228,26 @@ onMounted(async () => {
   word-break: break-word; animation: countUp 0.6s var(--ease-spring) both;
 }
 .sc-label { font-size: 11px; color: var(--text-dim); margin-top: 5px; font-weight: 500; }
+
+/* ── Streak card ── */
+.streak-card {
+  display: flex; align-items: center; gap: 16px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(239,68,68,0.03));
+  border: 1px solid rgba(245,158,11,0.18);
+}
+.streak-flame { font-size: 40px; line-height: 1; flex-shrink: 0; }
+.streak-flame.ablaze { animation: flameFlicker 1.2s ease-in-out infinite; }
+.streak-body { flex: 1; }
+.streak-current { display: flex; align-items: baseline; gap: 8px; }
+.streak-num { font-family: var(--font-display); font-weight: 800; font-size: 32px; line-height: 1; }
+.streak-unit { font-size: 13px; color: var(--text-dim); }
+.streak-meta { display: flex; align-items: center; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+.streak-tier { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 8px; }
+.streak-best { font-size: 12px; color: var(--text-dim); font-family: var(--font-mono); }
+@keyframes flameFlicker {
+  0%, 100% { transform: scale(1) rotate(-3deg); filter: drop-shadow(0 0 4px rgba(245,158,11,0.5)); }
+  50%       { transform: scale(1.12) rotate(3deg); filter: drop-shadow(0 0 10px rgba(239,68,68,0.7)); }
+}
 
 /* ── Level card ── */
 .level-card {

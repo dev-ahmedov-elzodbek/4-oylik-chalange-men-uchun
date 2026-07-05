@@ -138,13 +138,16 @@ const shieldIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
 const chevronLeftIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`
 const chevronRightIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`
 
+const trophyIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+
 const navItems = [
-  { path: '/today',     icon: boltIcon,     label: 'nav.today' },
-  { path: '/calendar',  icon: calendarIcon, label: 'nav.calendar' },
-  { path: '/alarm',     icon: alarmIcon,    label: 'nav.alarm' },
-  { path: '/nutrition', icon: utensilsIcon, label: 'nav.nutrition' },
-  { path: '/stats',     icon: barChartIcon, label: 'nav.stats' },
-  { path: '/profile',   icon: userIcon,     label: 'nav.profile' },
+  { path: '/today',       icon: boltIcon,     label: 'nav.today' },
+  { path: '/calendar',    icon: calendarIcon, label: 'nav.calendar' },
+  { path: '/alarm',       icon: alarmIcon,    label: 'nav.alarm' },
+  { path: '/nutrition',   icon: utensilsIcon, label: 'nav.nutrition' },
+  { path: '/stats',       icon: barChartIcon, label: 'nav.stats' },
+  { path: '/leaderboard', icon: trophyIcon,   label: 'nav.leaderboard' },
+  { path: '/profile',     icon: userIcon,     label: 'nav.profile' },
 ]
 </script>
 

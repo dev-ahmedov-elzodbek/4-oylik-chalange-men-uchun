@@ -54,14 +54,20 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth.js'
 import BottomNav from './components/BottomNav.vue'
 import SideNav from './components/SideNav.vue'
+import { startReminders } from './utils/reminders.js'
 
 const auth = useAuthStore()
 const route = useRoute()
+
+onMounted(() => {
+  // Kunlik motivatsion bildirishnomalarni yoqish
+  startReminders()
+})
 const isSuperAdminPage = computed(() =>
   route.path === '/superadmin' || route.path === '/superadmin-login'
 )
