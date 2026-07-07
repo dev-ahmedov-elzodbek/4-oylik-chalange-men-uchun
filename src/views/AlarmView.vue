@@ -94,7 +94,22 @@
               <span v-if="m.pro && !auth.isPro" class="melody-lock">👑</span>
               <span v-else class="melody-play" @click.stop="alarm.preview(key)">▶</span>
             </button>
+
+            <!-- O'z musiqasi -->
+            <button
+              class="melody-btn custom-melody"
+              :class="{ active: form.sound === 'custom', locked: !auth.isPro }"
+              @click="chooseCustom"
+            >
+              <span>🎵 {{ form.sound === 'custom' && customName ? customName : "O'z musiqam" }}</span>
+              <span v-if="!auth.isPro" class="melody-lock">👑</span>
+              <span v-else-if="uploading" class="melody-play">⏳</span>
+              <span v-else-if="form.sound === 'custom' && form.sound_url" class="melody-play" @click.stop="alarm.previewUrl(form.sound_url)">▶</span>
+              <span v-else class="melody-play">⬆</span>
+            </button>
           </div>
+          <input ref="soundInput" type="file" accept="audio/*" style="display:none" @change="uploadSound" />
+          <div v-if="uploadErr" class="upload-err">{{ uploadErr }}</div>
         </div>
 
         <!-- Vibratsiya + Snooze -->
@@ -152,11 +167,48 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAlarmStore, MELODIES } from '../stores/alarm.js'
 import { useAuthStore } from '../stores/auth.js'
+import { supabase } from '../supabase.js'
 import ProUpsell from '../components/ProUpsell.vue'
 
 const alarm = useAlarmStore()
 const auth = useAuthStore()
 const melodies = MELODIES
+
+// ── O'z musiqasi ──
+const soundInput = ref(null)
+const uploading = ref(false)
+const uploadErr = ref('')
+const customName = ref('')
+
+function chooseCustom() {
+  if (!auth.isPro) { showUpsell.value = true; return }
+  soundInput.value?.click()
+}
+
+async function uploadSound(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  uploadErr.value = ''
+  if (file.size > 5 * 1024 * 1024) { uploadErr.value = "Fayl 5MB dan katta bo'lmasin"; return }
+  uploading.value = true
+  try {
+    const ext = file.name.split('.').pop()
+    const path = `${auth.user.id}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('alarm-sounds').upload(path, file, { upsert: true })
+    if (error) throw error
+    const { data } = supabase.storage.from('alarm-sounds').getPublicUrl(path)
+    form.value.sound = 'custom'
+    form.value.sound_url = data.publicUrl
+    customName.value = file.name.length > 18 ? file.name.slice(0, 16) + '…' : file.name
+    alarm.previewUrl(data.publicUrl)
+  } catch (err) {
+    uploadErr.value = "Yuklashda xatolik. Qayta urinib ko'ring."
+    console.error(err)
+  } finally {
+    uploading.value = false
+    if (soundInput.value) soundInput.value.value = ''
+  }
+}
 
 const dayNames = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
 const showModal = ref(false)
@@ -165,11 +217,13 @@ const notifGranted = ref(Notification.permission === 'granted')
 const currentTime = ref('')
 const currentDate = ref('')
 
-const form = ref({ time: '07:00', label: '', days: [0,1,2,3,4], sound: 'classic', vibrate: true, snooze_min: 5 })
+const form = ref({ time: '07:00', label: '', days: [0,1,2,3,4], sound: 'classic', sound_url: null, vibrate: true, snooze_min: 5 })
 
 function selectMelody(key, m) {
   if (m.pro && !auth.isPro) { showUpsell.value = true; return }
   form.value.sound = key
+  form.value.sound_url = null
+  customName.value = ''
   alarm.preview(key)
 }
 
@@ -180,7 +234,8 @@ function openAdd() {
     showUpsell.value = true
     return
   }
-  form.value = { time: '07:00', label: '', days: [0,1,2,3,4], sound: 'classic', vibrate: true, snooze_min: 5 }
+  form.value = { time: '07:00', label: '', days: [0,1,2,3,4], sound: 'classic', sound_url: null, vibrate: true, snooze_min: 5 }
+  customName.value = ''
   showModal.value = true
 }
 
@@ -202,6 +257,7 @@ async function saveAlarm() {
     label: form.value.label,
     days: form.value.days,
     sound: form.value.sound,
+    sound_url: form.value.sound_url,
     vibrate: form.value.vibrate,
     snooze_min: form.value.snooze_min,
     is_active: true
@@ -367,6 +423,9 @@ onUnmounted(() => {
 .melody-btn.locked { opacity: 0.7; }
 .melody-play { color: var(--accent-light); font-size: 11px; }
 .melody-lock { font-size: 12px; }
+.custom-melody { grid-column: 1 / -1; border-style: dashed; border-color: rgba(108,99,255,0.35); }
+.custom-melody.active { border-style: solid; }
+.upload-err { color: var(--danger); font-size: 12px; margin-top: 8px; }
 
 /* Opsiyalar */
 .alarm-opts { display: flex; gap: 10px; margin-top: 14px; }

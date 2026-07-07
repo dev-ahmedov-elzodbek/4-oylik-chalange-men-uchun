@@ -16,6 +16,7 @@ export const useAlarmStore = defineStore('alarm', () => {
   const activeAlarm = ref(null)
   let checkInterval = null
   let ringLoop = null
+  let customAudio = null        // o'z musiqasi (Audio element)
   const firedKeys = new Set()   // takror-fire himoyasi (id + HH:MM)
 
   async function fetchAlarms(userId) {
@@ -83,22 +84,34 @@ export const useAlarmStore = defineStore('alarm', () => {
 
   function trigger(alarm) {
     activeAlarm.value = alarm
-    ring(alarm)
-    // Davomli jiringlash — foydalanuvchi to'xtatguncha (max 60s)
+    stopRinging()
+
+    const isCustom = alarm.sound === 'custom' && alarm.sound_url
+    if (isCustom) {
+      try {
+        customAudio = new Audio(alarm.sound_url)
+        customAudio.loop = true
+        customAudio.play().catch(() => {})
+      } catch { /* ijro etib bo'lmadi */ }
+    } else {
+      playMelody(alarm.sound)
+    }
+    if (alarm.vibrate !== false) vibrate()
+
+    // Davomli jiringlash — foydalanuvchi to'xtatguncha (max ~60s)
     let count = 0
-    if (ringLoop) clearInterval(ringLoop)
     ringLoop = setInterval(() => {
-      if (!activeAlarm.value || count++ > 20) { clearInterval(ringLoop); return }
-      ring(alarm)
+      if (!activeAlarm.value || count++ > 20) { stopRinging(); return }
+      if (!isCustom) playMelody(alarm.sound)
+      if (alarm.vibrate !== false) vibrate()
     }, 3000)
 
-    // Qurilma bildirishnomasi
     notifyDevice(alarm)
   }
 
-  function ring(alarm) {
-    playMelody(alarm?.sound || 'classic')
-    if (alarm?.vibrate !== false) vibrate()
+  function stopRinging() {
+    if (ringLoop) { clearInterval(ringLoop); ringLoop = null }
+    if (customAudio) { try { customAudio.pause() } catch {} customAudio = null }
   }
 
   function notifyDevice(alarm) {
@@ -137,11 +150,19 @@ export const useAlarmStore = defineStore('alarm', () => {
     } catch (e) { console.log('Audio error:', e) }
   }
   // Namuna eshittirish (sozlamada tanlash uchun)
-  function preview(soundKey) { playMelody(soundKey) }
+  let previewAudio = null
+  function preview(soundKey) {
+    if (previewAudio) { try { previewAudio.pause() } catch {} previewAudio = null }
+    playMelody(soundKey)
+  }
+  function previewUrl(url) {
+    if (previewAudio) { try { previewAudio.pause() } catch {} }
+    try { previewAudio = new Audio(url); previewAudio.play().catch(() => {}) } catch {}
+  }
 
   function dismissAlarm() {
     activeAlarm.value = null
-    if (ringLoop) { clearInterval(ringLoop); ringLoop = null }
+    stopRinging()
     try { navigator.vibrate?.(0) } catch {}
   }
 
@@ -154,13 +175,13 @@ export const useAlarmStore = defineStore('alarm', () => {
 
   function stopChecking() {
     if (checkInterval) clearInterval(checkInterval)
-    if (ringLoop) clearInterval(ringLoop)
+    stopRinging()
   }
 
   return {
     alarms, activeAlarm,
     fetchAlarms, addAlarm, updateAlarm, toggleAlarm, deleteAlarm,
     startChecking, stopChecking, dismissAlarm, snoozeAlarm,
-    playAlarmSound: () => playMelody('classic'), preview,
+    playAlarmSound: () => playMelody('classic'), preview, previewUrl,
   }
 })
