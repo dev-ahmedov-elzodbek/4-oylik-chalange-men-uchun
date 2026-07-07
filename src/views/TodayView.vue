@@ -381,8 +381,21 @@ const authStore = useAuthStore()
 // ── Streak ──
 const streak = ref({ current: 0, longest: 0 })
 const streakInfo = computed(() => streakTier(streak.value.current))
+const MILESTONES = [3, 7, 14, 30, 60, 100]
 async function loadStreak() {
-  if (authStore.user?.id) streak.value = await getStreak(authStore.user.id)
+  if (!authStore.user?.id) return
+  streak.value = await getStreak(authStore.user.id)
+  // Yangi bosqichga yetdi — nishonlaymiz (bir marta)
+  const cur = streak.value.current
+  const reached = MILESTONES.filter(m => cur >= m).pop()
+  if (reached) {
+    const key = `gf_streak_ms_${authStore.user.id}`
+    const last = Number(localStorage.getItem(key) || 0)
+    if (reached > last) {
+      localStorage.setItem(key, String(reached))
+      if (last > 0) setTimeout(() => celebrate({ count: 110 }), 300)
+    }
+  }
 }
 
 const today     = new Date()

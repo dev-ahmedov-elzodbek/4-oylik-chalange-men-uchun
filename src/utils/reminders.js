@@ -63,7 +63,15 @@ async function remainingCount() {
   } catch { return null }
 }
 
+export function remindersEnabled() {
+  return localStorage.getItem('gf_reminders') !== 'off'
+}
+export function toggleReminders(on) {
+  localStorage.setItem('gf_reminders', on ? 'on' : 'off')
+}
+
 async function checkSlots() {
+  if (!remindersEnabled()) return
   if (!('Notification' in window) || Notification.permission !== 'granted') return
   const h = new Date().getHours()
 

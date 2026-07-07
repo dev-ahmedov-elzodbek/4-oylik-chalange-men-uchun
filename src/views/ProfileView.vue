@@ -84,6 +84,28 @@
           <span>Yo'nalish</span>
           <span class="setting-val">{{ auth.profile?.direction ? t(`onboarding.directions.${auth.profile?.direction}`) : '—' }}</span>
         </div>
+
+        <div class="setting-item">
+          <div class="setting-label-wrap">
+            <span>🔊 Effekt va tebranish</span>
+            <span class="setting-hint">Vazifa belgilanganda tovush</span>
+          </div>
+          <label class="pf-toggle">
+            <input type="checkbox" :checked="fxOn" @change="setFx($event.target.checked)" />
+            <span class="pf-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-label-wrap">
+            <span>🔔 Kunlik eslatmalar</span>
+            <span class="setting-hint">Ertalab va kechqurun turtki</span>
+          </div>
+          <label class="pf-toggle">
+            <input type="checkbox" :checked="remOn" @change="setRem($event.target.checked)" />
+            <span class="pf-slider"></span>
+          </label>
+        </div>
       </div>
     </div>
 
@@ -130,10 +152,28 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import { icons } from '../icons.js'
+import { feedbackEnabled, toggleFeedback, playCheck } from '../utils/feedback.js'
+import { remindersEnabled, toggleReminders } from '../utils/reminders.js'
 
 const { t, locale } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
+
+// ── Sozlamalar ──
+const fxOn = ref(feedbackEnabled())
+const remOn = ref(remindersEnabled())
+function setFx(v) {
+  fxOn.value = v
+  toggleFeedback(v)
+  if (v) playCheck()  // yoqilganda namuna
+}
+async function setRem(v) {
+  remOn.value = v
+  toggleReminders(v)
+  if (v && 'Notification' in window && Notification.permission === 'default') {
+    await Notification.requestPermission()
+  }
+}
 
 const langs = [
   { code: 'uz', flag: '🇺🇿' },
@@ -353,6 +393,22 @@ async function logout() {
 }
 .setting-item:hover { background: var(--surface2); }
 .setting-val { font-size: 13px; color: var(--text-dim); }
+.setting-label-wrap { display: flex; flex-direction: column; gap: 2px; }
+.setting-hint { font-size: 11px; color: var(--text-dim); }
+
+/* ── Toggle switch ── */
+.pf-toggle { position: relative; display: inline-block; width: 46px; height: 26px; cursor: pointer; flex-shrink: 0; }
+.pf-toggle input { opacity: 0; width: 0; height: 0; }
+.pf-slider { position: absolute; inset: 0; background: var(--surface3); border-radius: 14px; transition: 0.25s; }
+.pf-slider::before {
+  content: ''; position: absolute;
+  height: 20px; width: 20px; left: 3px; bottom: 3px;
+  background: white; border-radius: 50%; transition: 0.25s var(--ease-spring);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.pf-toggle input:checked + .pf-slider { background: linear-gradient(135deg, var(--accent), #8b5cf6); }
+.pf-toggle input:checked + .pf-slider::before { transform: translateX(20px); }
+
 .lang-btns { display: flex; gap: 6px; }
 .lang-btn-sm {
   background: var(--surface2); border: 1px solid var(--border);

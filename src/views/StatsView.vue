@@ -82,6 +82,7 @@ import { useAuthStore } from '../stores/auth.js'
 import { useTasksStore } from '../stores/tasks.js'
 import { getStreak, streakTier } from '../utils/streak.js'
 import { shareReport } from '../utils/share.js'
+import { celebrate } from '../utils/feedback.js'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -166,6 +167,17 @@ onMounted(async () => {
   await tasks.fetchTasks()
   for (const d of last7.value) await tasks.fetchCompletions(ds(d))
   if (auth.user?.id) streak.value = await getStreak(auth.user.id)
+
+  // Daraja oshgan bo'lsa — nishonlaymiz
+  const lvlName = currentLevel.value.name
+  const lastLvl = localStorage.getItem('gf_last_level')
+  if (lastLvl && lastLvl !== lvlName) {
+    const order = LEVELS.map(l => l.name)
+    if (order.indexOf(lvlName) > order.indexOf(lastLvl)) {
+      setTimeout(() => celebrate({ count: 120, origin: { x: 0.5, y: 0.4 } }), 400)
+    }
+  }
+  localStorage.setItem('gf_last_level', lvlName)
 })
 </script>
 
