@@ -109,8 +109,42 @@
       </div>
     </div>
 
+    <!-- ── Referral / Invite ── -->
+    <div class="prof-card card-referral anim-fade-up stagger-4">
+      <div class="pc-header">
+        <div class="pc-icon" style="background:rgba(236,72,153,0.15);color:#ec4899">🎁</div>
+        <span class="pc-title">Do'stlarni taklif qil</span>
+      </div>
+      <p class="ref-desc">Do'stingiz kodingizni kiritsa — <b>ikkalangizga +50 ball</b> 🎉</p>
+
+      <div class="ref-code-box">
+        <div class="ref-code-label">Sizning kodingiz</div>
+        <div class="ref-code-value">{{ referral.code || '••••••' }}</div>
+        <div class="ref-code-actions">
+          <button class="ref-mini-btn" @click="copyCode">{{ copiedCode ? '✓ Nusxa olindi' : '📋 Nusxa' }}</button>
+          <button class="ref-mini-btn primary" @click="shareCode">📤 Ulashish</button>
+        </div>
+      </div>
+
+      <div v-if="referral.invited_count > 0" class="ref-stat">
+        👥 Siz <b>{{ referral.invited_count }}</b> ta do'st taklif qilgansiz
+        <span class="ref-bonus">+{{ referral.invited_count * 50 }} ball</span>
+      </div>
+
+      <!-- Redeem (agar hali taklif qilinmagan bo'lsa) -->
+      <div v-if="!referral.was_referred" class="ref-redeem">
+        <div class="ref-redeem-label">Do'st kodini kiriting</div>
+        <div class="ref-redeem-row">
+          <input v-model="redeemCode" class="input ref-input" placeholder="MASALAN: 6B39A8" maxlength="6" />
+          <button class="btn btn-primary" @click="submitRedeem">Kiritish</button>
+        </div>
+        <div v-if="redeemMsg" class="ref-msg" :class="{ ok: redeemOk }">{{ redeemMsg }}</div>
+      </div>
+      <div v-else class="ref-done">✓ Siz taklif kodini kiritgansiz</div>
+    </div>
+
     <!-- ── Edit profile ── -->
-    <div class="prof-card card-edit anim-fade-up stagger-4">
+    <div class="prof-card card-edit anim-fade-up stagger-5">
       <div class="pc-header">
         <div class="pc-icon" style="background:rgba(0,212,170,0.15);color:var(--accent2)" v-html="icons.edit"></div>
         <span class="pc-title">Profilni tahrirlash</span>
@@ -137,7 +171,7 @@
       </button>
     </div>
 
-    <button class="btn btn-logout btn-full anim-fade-up stagger-5" @click="logout">
+    <button class="btn btn-logout btn-full anim-fade-up stagger-6" @click="logout">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Chiqish
     </button>
@@ -154,10 +188,57 @@ import { useAuthStore } from '../stores/auth.js'
 import { icons } from '../icons.js'
 import { feedbackEnabled, toggleFeedback, playCheck } from '../utils/feedback.js'
 import { remindersEnabled, toggleReminders } from '../utils/reminders.js'
+import { supabase } from '../supabase.js'
+import { onMounted } from 'vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
+
+// ── Referral (do'st taklif) ──
+const referral = ref({ code: '', invited_count: 0, was_referred: false })
+const redeemCode = ref('')
+const redeemMsg = ref('')
+const redeemOk = ref(false)
+const copiedCode = ref(false)
+
+async function loadReferral() {
+  if (!auth.user?.id) return
+  const { data } = await supabase.rpc('get_my_referral')
+  if (data?.[0]) referral.value = data[0]
+}
+function copyCode() {
+  navigator.clipboard?.writeText(referral.value.code)
+  copiedCode.value = true
+  setTimeout(() => copiedCode.value = false, 1500)
+}
+async function shareCode() {
+  const text = `GoalFlow'ga qo'shil! Mening taklif kodim: ${referral.value.code}\nHar kuni 1% yaxshilan 🚀`
+  if (navigator.share) {
+    try { await navigator.share({ title: 'GoalFlow', text }) } catch {}
+  } else {
+    copyCode()
+  }
+}
+async function submitRedeem() {
+  redeemMsg.value = ''
+  const code = redeemCode.value.trim().toUpperCase()
+  if (!code) return
+  const { data, error } = await supabase.rpc('redeem_referral', { code })
+  if (error) { redeemMsg.value = 'Xatolik yuz berdi'; redeemOk.value = false; return }
+  const msgs = {
+    'ok': "✓ Muvaffaqiyatli! Ikkalangizga +50 ball qo'shildi",
+    'error:notfound': 'Bunday kod topilmadi',
+    'error:self': "O'z kodingizni kirita olmaysiz",
+    'error:already': 'Siz allaqachon kod kiritgansiz',
+    'error:auth': 'Avval tizimga kiring',
+  }
+  redeemOk.value = data === 'ok'
+  redeemMsg.value = msgs[data] || 'Xatolik'
+  if (data === 'ok') { playCheck(); loadReferral() }
+}
+
+onMounted(loadReferral)
 
 // ── Sozlamalar ──
 const fxOn = ref(feedbackEnabled())
@@ -339,7 +420,51 @@ async function logout() {
 .card-challenge { border-top: 3px solid #f59e0b; }
 .card-health    { border-top: 3px solid #10b981; }
 .card-settings  { border-top: 3px solid var(--accent); }
+.card-referral  { border-top: 3px solid #ec4899; }
 .card-edit      { border-top: 3px solid var(--accent2); }
+
+/* ── Referral ── */
+.ref-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-bottom: 14px; }
+.ref-desc b { color: var(--text); }
+.ref-code-box {
+  background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(139,92,246,0.04));
+  border: 1px dashed rgba(236,72,153,0.35);
+  border-radius: var(--radius-sm);
+  padding: 16px; text-align: center; margin-bottom: 12px;
+}
+.ref-code-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.ref-code-value {
+  font-family: var(--font-mono); font-weight: 700; font-size: 30px; letter-spacing: 4px;
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin: 6px 0 12px;
+}
+.ref-code-actions { display: flex; gap: 8px; justify-content: center; }
+.ref-mini-btn {
+  padding: 8px 16px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border2); background: var(--surface2);
+  color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.ref-mini-btn:hover { background: var(--surface3); }
+.ref-mini-btn.primary { background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; border-color: transparent; }
+.ref-mini-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(236,72,153,0.35); }
+
+.ref-stat {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 13px; color: var(--text-dim);
+  background: var(--surface2); border-radius: var(--radius-sm);
+  padding: 10px 14px; margin-bottom: 12px;
+}
+.ref-stat b { color: var(--text); }
+.ref-bonus { margin-left: auto; font-family: var(--font-mono); font-weight: 700; color: #10b981; font-size: 12px; }
+
+.ref-redeem-label { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; }
+.ref-redeem-row { display: flex; gap: 8px; }
+.ref-input { text-transform: uppercase; letter-spacing: 3px; font-family: var(--font-mono); font-weight: 700; }
+.ref-msg { font-size: 13px; margin-top: 8px; color: var(--danger); }
+.ref-msg.ok { color: var(--success); }
+.ref-done { font-size: 13px; color: var(--success); background: rgba(16,185,129,0.08); border-radius: var(--radius-sm); padding: 10px 14px; text-align: center; }
 
 .pc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .pc-icon {
