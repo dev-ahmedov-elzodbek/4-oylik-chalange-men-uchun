@@ -56,10 +56,69 @@ export function computeStreak(activeDays) {
   return { current, longest }
 }
 
-// Bitta chaqiriqda: userId → { current, longest }
+// ── Streak Freeze (muzlatish) ──
+// Har 7 faol kunga 1 ta muzlatish beriladi. Bitta kun o'tkazib
+// yuborilsa, avtomatik muzlatish sarflanib streak saqlanadi.
+function freezeKey(userId) { return `gf_freezes_${userId}` }
+
+function loadUsed(userId) {
+  try { return new Set(JSON.parse(localStorage.getItem(freezeKey(userId)) || '[]')) }
+  catch { return new Set() }
+}
+function saveUsed(userId, set) {
+  localStorage.setItem(freezeKey(userId), JSON.stringify([...set]))
+}
+
+// activeDays + muzlatishlar bilan streak hisoblash
+export function computeStreakWithFreeze(activeDays, userId) {
+  const raw = computeStreak(activeDays)
+  if (!activeDays || activeDays.size === 0) {
+    return { ...raw, freezesAvailable: 0, freezesEarned: 0 }
+  }
+
+  const earned = Math.floor(activeDays.size / 7)  // har 7 kunga 1 muzlatish
+  const used = loadUsed(userId)
+  let available = Math.max(0, earned - used.size)
+
+  // Bugundan orqaga yurib, bitta bo'sh kunni muzlatish bilan yopamiz
+  const covered = new Set([...activeDays, ...used])
+  const cursor = new Date()
+  if (!covered.has(ymd(cursor))) cursor.setDate(cursor.getDate() - 1)
+
+  let current = 0
+  while (true) {
+    const key = ymd(cursor)
+    if (covered.has(key)) {
+      current++
+      cursor.setDate(cursor.getDate() - 1)
+      continue
+    }
+    // bo'sh kun — muzlatish bor va oldingi kun faol bo'lsa yopamiz
+    const prev = new Date(cursor); prev.setDate(prev.getDate() - 1)
+    if (available > 0 && activeDays.has(ymd(prev))) {
+      used.add(key)
+      covered.add(key)
+      available--
+      current++
+      cursor.setDate(cursor.getDate() - 1)
+      continue
+    }
+    break
+  }
+
+  saveUsed(userId, used)
+  return {
+    current,
+    longest: Math.max(raw.longest, current),
+    freezesAvailable: available,
+    freezesEarned: earned,
+  }
+}
+
+// Bitta chaqiriqda: userId → { current, longest, freezesAvailable }
 export async function getStreak(userId) {
   const days = await fetchActiveDays(userId)
-  return computeStreak(days)
+  return computeStreakWithFreeze(days, userId)
 }
 
 // Alanga darajasi (rang/emoji) — motivatsiya uchun

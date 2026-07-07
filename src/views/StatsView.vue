@@ -26,7 +26,8 @@
         </div>
         <div class="streak-meta">
           <span class="streak-tier" :style="{ color: streakInfo.color, background: streakInfo.color + '18' }">{{ streakInfo.label }}</span>
-          <span class="streak-best">🏆 Rekord: {{ streak.longest }} kun</span>
+          <span class="streak-best">🏆 {{ streak.longest }} kun</span>
+          <span v-if="streak.freezesAvailable > 0" class="streak-freeze" title="Bir kun o'tkazsangiz streak saqlanadi">❄️ {{ streak.freezesAvailable }}</span>
         </div>
       </div>
     </div>
@@ -66,6 +67,28 @@
       </div>
     </div>
 
+    <!-- ── Yutuqlar ── -->
+    <div class="card ach-card">
+      <div class="ach-header">
+        <span class="ach-title">🏅 Yutuqlar</span>
+        <span class="ach-count">{{ unlockedCount }}/{{ achievements.length }}</span>
+      </div>
+      <div class="ach-grid">
+        <div
+          v-for="a in achievements"
+          :key="a.id"
+          class="ach-badge"
+          :class="{ locked: !a.unlocked }"
+          :style="a.unlocked ? { borderColor: tierColor(a.tier) + '55', background: tierColor(a.tier) + '12' } : {}"
+          :title="a.desc"
+        >
+          <div class="ach-icon">{{ a.unlocked ? a.icon : '🔒' }}</div>
+          <div class="ach-name">{{ a.title }}</div>
+          <div class="ach-desc">{{ a.desc }}</div>
+        </div>
+      </div>
+    </div>
+
     <div class="card quote-card">
       <div class="quote-text">"{{ quote }}"</div>
       <button class="btn btn-outline btn-sm" @click="nextQuote">Yangi hikmat ✨</button>
@@ -83,6 +106,8 @@ import { useTasksStore } from '../stores/tasks.js'
 import { getStreak, streakTier } from '../utils/streak.js'
 import { shareReport } from '../utils/share.js'
 import { celebrate } from '../utils/feedback.js'
+import { computeAchievements, tierColor } from '../utils/achievements.js'
+import { supabase } from '../supabase.js'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -90,6 +115,21 @@ const tasks = useTasksStore()
 
 const streak = ref({ current: 0, longest: 0 })
 const streakInfo = computed(() => streakTier(streak.value.current))
+
+// ── Yutuqlar ──
+const totalCompletions = ref(0)
+const invitedCount = ref(0)
+const weekPctVal = computed(() =>
+  Math.round(last7.value.reduce((s, d) => s + tasks.getDayCompletion(ds(d)), 0) / 7))
+const achievements = computed(() => computeAchievements({
+  points: totalPts.value,
+  currentStreak: streak.value.current,
+  longestStreak: streak.value.longest,
+  completions: totalCompletions.value,
+  invited: invitedCount.value,
+  weekPct: weekPctVal.value,
+}))
+const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).length)
 
 const sharing = ref(false)
 async function doShare() {
@@ -166,7 +206,16 @@ function nextQuote() { qIdx.value = (qIdx.value + 1) % quotes.length }
 onMounted(async () => {
   await tasks.fetchTasks()
   for (const d of last7.value) await tasks.fetchCompletions(ds(d))
-  if (auth.user?.id) streak.value = await getStreak(auth.user.id)
+  if (auth.user?.id) {
+    streak.value = await getStreak(auth.user.id)
+    // Yutuqlar uchun: jami bajarilgan vazifalar + taklif soni
+    const { count } = await supabase.from('task_completions')
+      .select('task_id', { count: 'exact', head: true })
+      .eq('user_id', auth.user.id)
+    totalCompletions.value = count || 0
+    const { data: ref } = await supabase.rpc('get_my_referral')
+    if (ref?.[0]) invitedCount.value = Number(ref[0].invited_count) || 0
+  }
 
   // Daraja oshgan bo'lsa — nishonlaymiz
   const lvlName = currentLevel.value.name
@@ -256,6 +305,7 @@ onMounted(async () => {
 .streak-meta { display: flex; align-items: center; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
 .streak-tier { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 8px; }
 .streak-best { font-size: 12px; color: var(--text-dim); font-family: var(--font-mono); }
+.streak-freeze { font-size: 12px; font-weight: 700; color: #38bdf8; background: rgba(56,189,248,0.14); padding: 2px 9px; border-radius: 8px; font-family: var(--font-mono); }
 @keyframes flameFlicker {
   0%, 100% { transform: scale(1) rotate(-3deg); filter: drop-shadow(0 0 4px rgba(245,158,11,0.5)); }
   50%       { transform: scale(1.12) rotate(3deg); filter: drop-shadow(0 0 10px rgba(239,68,68,0.7)); }
@@ -337,6 +387,28 @@ onMounted(async () => {
   background: rgba(108,99,255,0.1);
   border-radius: 4px; padding: 1px 3px;
 }
+
+/* ── Achievements ── */
+.ach-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.ach-title { font-family: var(--font-display); font-weight: 700; font-size: 15px; }
+.ach-count { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--accent-light); background: rgba(108,99,255,0.12); padding: 3px 10px; border-radius: 8px; }
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 10px; }
+.ach-badge {
+  text-align: center;
+  padding: 14px 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface2);
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s;
+  cursor: default;
+}
+.ach-badge:not(.locked):hover { transform: translateY(-3px) scale(1.03); box-shadow: var(--shadow); }
+.ach-badge.locked { opacity: 0.5; filter: grayscale(0.6); }
+.ach-icon { font-size: 28px; line-height: 1; margin-bottom: 6px; }
+.ach-badge:not(.locked) .ach-icon { animation: badgePop 0.5s var(--ease-spring) both; }
+.ach-name { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+.ach-desc { font-size: 10px; color: var(--text-dim); line-height: 1.3; }
+@keyframes badgePop { 0% { transform: scale(0.4); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
 /* ── Quote card ── */
 .quote-card {
