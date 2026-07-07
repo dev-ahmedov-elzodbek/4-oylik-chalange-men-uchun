@@ -256,7 +256,9 @@ async function submit() {
       router.push('/today')
     } else {
       await auth.register(email.value, password.value, fullName.value)
-      success.value = 'Email tasdiqlash uchun xat yuborildi!'
+      // Email tasdiqlash o'chirilgan — ro'yxatdan o'tgach darhol kiramiz
+      await auth.login(email.value, password.value)
+      router.push('/today')
     }
   } catch (e) {
     error.value = e.message
