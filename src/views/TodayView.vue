@@ -365,6 +365,13 @@
       </div>
     </Teleport>
 
+    <ProUpsell
+      :open="showUpsell"
+      title="Ko'proq vazifa qo'shing"
+      :desc="`Free rejada ${FREE_TASK_LIMIT} ta shaxsiy vazifa. Pro bilan cheksiz!`"
+      @close="showUpsell = false"
+    />
+
   </div>
 </template>
 
@@ -375,6 +382,7 @@ import { useAuthStore } from '../stores/auth.js'
 import { icons } from '../icons.js'
 import { playCheck, playUncheck, celebrate } from '../utils/feedback.js'
 import { getStreak, streakTier } from '../utils/streak.js'
+import ProUpsell from '../components/ProUpsell.vue'
 
 const authStore = useAuthStore()
 
@@ -549,7 +557,14 @@ async function handleTaskClick(taskId) {
 }
 
 // ── Add task ─────────────────────────────────────────────────────
+const FREE_TASK_LIMIT = 5
+const showUpsell = ref(false)
 function openAddTask() {
+  // Free foydalanuvchi uchun limit
+  if (!authStore.isPro && myTasks.value.length >= FREE_TASK_LIMIT) {
+    showUpsell.value = true
+    return
+  }
   showAddTask.value = true
   nextTick(() => newTitleRef.value?.focus())
 }

@@ -94,6 +94,13 @@
       <button class="btn btn-outline btn-sm" @click="nextQuote">Yangi hikmat ✨</button>
     </div>
 
+    <ProUpsell
+      :open="showUpsell"
+      title="Haftalik hisobot"
+      desc="Progressingizni chiroyli rasm qilib ulashing — Pro imkoniyat."
+      @close="showUpsell = false"
+    />
+
     <div style="height:20px"></div>
   </div>
 </template>
@@ -108,6 +115,7 @@ import { shareReport } from '../utils/share.js'
 import { celebrate } from '../utils/feedback.js'
 import { computeAchievements, tierColor } from '../utils/achievements.js'
 import { supabase } from '../supabase.js'
+import ProUpsell from '../components/ProUpsell.vue'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -132,7 +140,9 @@ const achievements = computed(() => computeAchievements({
 const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).length)
 
 const sharing = ref(false)
+const showUpsell = ref(false)
 async function doShare() {
+  if (!auth.isPro) { showUpsell.value = true; return }
   sharing.value = true
   try {
     const weekPct = Math.round(last7.value.reduce((s, d) => s + tasks.getDayCompletion(ds(d)), 0) / 7)

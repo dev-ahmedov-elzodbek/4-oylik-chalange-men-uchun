@@ -118,6 +118,68 @@
       </div>
     </div>
 
+    <!-- ===== SUPPORT TAB ===== -->
+    <div v-if="activeTab === 'support' && !loading">
+      <div class="support-admin">
+        <!-- Suhbatlar ro'yxati -->
+        <div class="card sa-threads" :class="{ 'has-active': activeThread }">
+          <div class="card-title">💬 Suhbatlar <span v-if="totalUnread" class="sa-unread-total">{{ totalUnread }}</span></div>
+          <div class="sa-thread-list">
+            <div
+              v-for="th in threads"
+              :key="th.user_id"
+              class="sa-thread"
+              :class="{ active: activeThread?.user_id === th.user_id }"
+              @click="openThread(th)"
+            >
+              <div class="sa-thread-avatar">{{ (th.display_name || 'U')[0].toUpperCase() }}</div>
+              <div class="sa-thread-info">
+                <div class="sa-thread-name">{{ th.display_name }}</div>
+                <div class="sa-thread-last">{{ th.last_message }}</div>
+              </div>
+              <div v-if="Number(th.unread) > 0" class="sa-thread-badge">{{ th.unread }}</div>
+            </div>
+            <div v-if="!threads.length" class="empty-state">Hali suhbat yo'q</div>
+          </div>
+        </div>
+
+        <!-- Chat panel -->
+        <div class="card sa-chat" :class="{ 'is-open': activeThread }">
+          <template v-if="activeThread">
+            <div class="sa-chat-head">
+              <button class="sa-back" @click="activeThread = null">‹</button>
+              <div class="sa-thread-avatar">{{ (activeThread.display_name || 'U')[0].toUpperCase() }}</div>
+              <div>
+                <div class="sa-chat-name">{{ activeThread.display_name }}</div>
+                <div class="sa-chat-email">{{ activeThread.email }}</div>
+              </div>
+            </div>
+            <div ref="supportScrollEl" class="sa-chat-scroll">
+              <div
+                v-for="m in threadMessages"
+                :key="m.id"
+                class="sa-msg"
+                :class="m.sender === 'admin' ? 'from-admin' : 'from-user'"
+              >
+                <div class="sa-bubble">
+                  <div class="sa-text">{{ m.message }}</div>
+                  <div class="sa-time">{{ new Date(m.created_at).toLocaleTimeString('uz', {hour:'2-digit',minute:'2-digit'}) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="sa-input-row">
+              <input v-model="supportDraft" class="chat-input-el" placeholder="Javob yozing..." @keydown.enter="sendReply" />
+              <button class="sa-send" :disabled="!supportDraft.trim()" @click="sendReply">Yuborish</button>
+            </div>
+          </template>
+          <div v-else class="sa-chat-empty">
+            <div style="font-size:40px">💬</div>
+            <p>Javob berish uchun suhbatni tanlang</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== ADMINS TAB ===== -->
     <div v-if="activeTab === 'admins' && !loading">
       <div class="card">
@@ -378,7 +440,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import { supabase } from '../supabase.js'
@@ -446,6 +508,61 @@ function planEndText(u) {
   return days > 0 ? `${days} kun qoldi` : 'Muddati tugagan'
 }
 
+// ── Support (Yordam) chat ──
+const threads = ref([])
+const activeThread = ref(null)      // { user_id, display_name, email }
+const threadMessages = ref([])
+const supportDraft = ref('')
+const supportScrollEl = ref(null)
+let supportChannel = null
+
+const totalUnread = computed(() => threads.value.reduce((s, t) => s + Number(t.unread || 0), 0))
+
+async function loadThreads() {
+  const { data } = await supabase.rpc('get_support_threads')
+  threads.value = data || []
+}
+async function scrollSupport() {
+  await nextTick()
+  if (supportScrollEl.value) supportScrollEl.value.scrollTop = supportScrollEl.value.scrollHeight
+}
+async function openThread(t) {
+  activeThread.value = t
+  const { data } = await supabase.from('support_messages')
+    .select('*').eq('user_id', t.user_id).order('created_at', { ascending: true })
+  threadMessages.value = data || []
+  scrollSupport()
+  // user xabarlarini o'qilgan deb belgilash
+  await supabase.from('support_messages').update({ is_read: true })
+    .eq('user_id', t.user_id).eq('sender', 'user').eq('is_read', false)
+  loadThreads()
+}
+async function sendReply() {
+  const text = supportDraft.value.trim()
+  if (!text || !activeThread.value) return
+  supportDraft.value = ''
+  const { error } = await supabase.from('support_messages').insert({
+    user_id: activeThread.value.user_id, sender: 'admin', message: text,
+  })
+  if (error) { supportDraft.value = text; console.error(error) }
+}
+function subscribeSupport() {
+  supportChannel = supabase.channel('support:admin')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' },
+      (payload) => {
+        const msg = payload.new
+        // Ochiq suhbatga tegishli bo'lsa — qo'shamiz
+        if (activeThread.value && msg.user_id === activeThread.value.user_id) {
+          if (!threadMessages.value.find(m => m.id === msg.id)) {
+            threadMessages.value.push(msg)
+            scrollSupport()
+          }
+        }
+        loadThreads()
+      })
+    .subscribe()
+}
+
 async function setPlan(userId, plan, days = null) {
   proMsg.value = ''
   const { data, error: err } = await supabase.rpc('admin_set_plan', {
@@ -482,6 +599,7 @@ const editModal = ref({ open: false, id: null, full_name: '', email: '', directi
 const tabs = [
   { id: 'users', icon: '👥', label: 'Foydalanuvchilar' },
   { id: 'pro', icon: '💎', label: 'Pro boshqaruv' },
+  { id: 'support', icon: '💬', label: 'Yordam' },
   { id: 'admins', icon: '🛡️', label: 'Adminlar' },
   { id: 'stats', icon: '', label: 'Statistika' },
   { id: 'user_stats', icon: '', label: 'Faollik' },
@@ -738,10 +856,75 @@ async function loadData() {
   }
 }
 
-onMounted(loadData)
+onMounted(() => {
+  loadData()
+  loadThreads()
+  subscribeSupport()
+})
+onUnmounted(() => { if (supportChannel) supabase.removeChannel(supportChannel) })
 </script>
 
 <style scoped>
+/* ── Support (Yordam) admin ── */
+.support-admin { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 768px) { .support-admin { grid-template-columns: 300px 1fr; align-items: start; } }
+
+.sa-unread-total { margin-left: 8px; background: var(--danger); color: white; font-size: 11px; font-family: var(--font-mono); padding: 1px 8px; border-radius: 10px; }
+.sa-thread-list { display: flex; flex-direction: column; gap: 4px; max-height: 62vh; overflow-y: auto; }
+.sa-thread {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border-radius: var(--radius-sm); cursor: pointer; transition: background 0.15s;
+}
+.sa-thread:hover { background: var(--surface2); }
+.sa-thread.active { background: rgba(108,99,255,0.12); }
+.sa-thread-avatar {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px;
+}
+.sa-thread-info { flex: 1; min-width: 0; }
+.sa-thread-name { font-size: 14px; font-weight: 600; }
+.sa-thread-last { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sa-thread-badge { background: var(--danger); color: white; font-size: 11px; font-family: var(--font-mono); font-weight: 700; padding: 1px 7px; border-radius: 10px; flex-shrink: 0; }
+
+.sa-chat { display: flex; flex-direction: column; height: 62vh; min-height: 400px; padding: 0; overflow: hidden; }
+.sa-chat-head {
+  display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+  border-bottom: 1px solid var(--border); background: var(--surface2);
+}
+.sa-back { display: none; background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; line-height: 1; }
+@media (max-width: 767px) {
+  .sa-threads.has-active { display: none; }
+  .sa-chat { display: none; }
+  .sa-chat.is-open { display: flex; }
+  .sa-back { display: block; }
+}
+.sa-chat-name { font-size: 14px; font-weight: 700; }
+.sa-chat-email { font-size: 11px; color: var(--text-dim); }
+.sa-chat-scroll { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.sa-msg { display: flex; max-width: 80%; }
+.sa-msg.from-admin { align-self: flex-end; }
+.sa-msg.from-user { align-self: flex-start; }
+.sa-bubble { padding: 9px 13px; border-radius: 14px; }
+.from-admin .sa-bubble { background: linear-gradient(135deg, var(--accent), #8b5cf6); color: white; border-bottom-right-radius: 4px; }
+.from-user .sa-bubble { background: var(--surface3); color: var(--text); border-bottom-left-radius: 4px; }
+.sa-text { font-size: 14px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+.sa-time { font-size: 10px; opacity: 0.6; margin-top: 3px; text-align: right; font-family: var(--font-mono); }
+.sa-input-row { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); background: var(--surface2); }
+.chat-input-el {
+  flex: 1; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 11px 14px; color: var(--text);
+  font-family: var(--font-body); font-size: 14px; outline: none;
+}
+.chat-input-el:focus { border-color: var(--accent); }
+.sa-send {
+  border: none; cursor: pointer; padding: 0 18px; border-radius: 12px; color: white;
+  background: linear-gradient(135deg, var(--accent), #8b5cf6); font-weight: 700; font-size: 13px;
+}
+.sa-send:disabled { opacity: 0.5; cursor: default; }
+.sa-chat-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-dim); font-size: 14px; }
+
 /* ── Pro boshqaruv ── */
 .pro-intro { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
 .pro-intro-icon { font-size: 34px; }

@@ -78,7 +78,10 @@
 
         <!-- AI Rasm tahlil -->
         <div class="ai-section">
-          <div class="ai-label">📸 Rasm orqali aniqlash (AI)</div>
+          <div class="ai-label">
+            📸 Rasm orqali aniqlash (AI)
+            <span v-if="!auth.isPro" class="ai-pro-tag">👑 PRO</span>
+          </div>
           <div class="ai-upload-area" @click="triggerCamera" @dragover.prevent @drop.prevent="onDrop">
             <div v-if="!previewImg" class="ai-placeholder">
               <span style="font-size:36px">📷</span>
@@ -127,6 +130,13 @@
       </div>
     </div>
 
+    <ProUpsell
+      :open="showUpsell"
+      title="AI ovqat tahlili"
+      desc="Rasmdan kaloriya va makroslarni avtomatik aniqlash — Pro imkoniyat."
+      @close="showUpsell = false"
+    />
+
     <div style="height:20px"></div>
   </div>
 </template>
@@ -137,6 +147,9 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth.js'
 import { useNutritionStore } from '../stores/nutrition.js'
 import { supabase } from '../supabase.js'
+import ProUpsell from '../components/ProUpsell.vue'
+
+const showUpsell = ref(false)
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -217,6 +230,7 @@ function clearImage() {
 
 async function analyzeImage() {
   if (!imageBase64.value) return
+  if (!auth.isPro) { showUpsell.value = true; return }
   aiLoading.value = true; aiError.value = ''; aiSuccess.value = ''
   try {
     // AI kaliti serverda (Edge Function) — brauzerdan chaqirmaymiz
@@ -376,7 +390,8 @@ onMounted(() => nutrition.fetchLogs(todayStr))
 .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; padding: 20px 16px 32px; width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; }
 .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .ai-section { margin-bottom: 4px; }
-.ai-label { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--accent-light); }
+.ai-label { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--accent-light); display: flex; align-items: center; gap: 8px; }
+.ai-pro-tag { font-size: 10px; font-weight: 800; color: #f59e0b; background: rgba(245,158,11,0.15); padding: 2px 8px; border-radius: 8px; letter-spacing: 0.05em; }
 .ai-upload-area { border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 20px 16px; text-align: center; cursor: pointer; transition: border-color 0.2s; min-height: 110px; display: flex; align-items: center; justify-content: center; }
 .ai-upload-area:hover { border-color: var(--accent); }
 .ai-placeholder { display: flex; flex-direction: column; gap: 6px; align-items: center; }

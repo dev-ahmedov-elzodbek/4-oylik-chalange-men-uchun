@@ -12,7 +12,12 @@
         <div class="prof-info">
           <div class="prof-name">{{ auth.profile?.full_name || 'Foydalanuvchi' }}</div>
           <div class="prof-email">{{ auth.user?.email }}</div>
-          <span class="prof-role-badge" :class="roleBadge">{{ roleLabel }}</span>
+          <div class="prof-badges">
+            <span class="prof-role-badge" :class="roleBadge">{{ roleLabel }}</span>
+            <span v-if="auth.isPro && auth.profile?.role === 'user'" class="prof-plan-badge">
+              {{ auth.isPremium ? '👑 Premium' : '💎 Pro' }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -106,6 +111,15 @@
             <span class="pf-slider"></span>
           </label>
         </div>
+
+        <router-link to="/support" class="setting-link">
+          <span>💬 Yordam va qo'llab-quvvatlash</span>
+          <span class="setting-arrow">›</span>
+        </router-link>
+        <router-link v-if="!auth.isPro" to="/subscription" class="setting-link pro-link">
+          <span>👑 Pro rejaga o'tish</span>
+          <span class="setting-arrow">›</span>
+        </router-link>
       </div>
     </div>
 
@@ -405,6 +419,15 @@ async function logout() {
 .prof-role-badge.badge-warning { background: rgba(245,158,11,0.18); color: #f59e0b; box-shadow: 0 0 16px rgba(245,158,11,0.2); }
 .prof-role-badge.badge-accent  { background: rgba(108,99,255,0.18); color: var(--accent-light); box-shadow: 0 0 16px rgba(108,99,255,0.2); }
 .prof-role-badge.badge-success { background: rgba(16,185,129,0.18); color: var(--success); }
+.prof-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.prof-plan-badge {
+  display: inline-flex; align-items: center;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(249,115,22,0.1));
+  color: #f59e0b;
+  box-shadow: 0 0 16px rgba(245,158,11,0.2);
+}
 
 /* ── Cards ── */
 .prof-card {
@@ -520,6 +543,15 @@ async function logout() {
 .setting-val { font-size: 13px; color: var(--text-dim); }
 .setting-label-wrap { display: flex; flex-direction: column; gap: 2px; }
 .setting-hint { font-size: 11px; color: var(--text-dim); }
+.setting-link {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px; border-radius: var(--radius-sm);
+  text-decoration: none; color: var(--text); font-size: 14px;
+  transition: background 0.2s;
+}
+.setting-link:hover { background: var(--surface2); }
+.setting-arrow { color: var(--text-dim); font-size: 20px; }
+.pro-link { color: #f59e0b; font-weight: 600; }
 
 /* ── Toggle switch ── */
 .pf-toggle { position: relative; display: inline-block; width: 46px; height: 26px; cursor: pointer; flex-shrink: 0; }

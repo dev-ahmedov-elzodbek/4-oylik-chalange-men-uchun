@@ -104,6 +104,13 @@
       </div>
     </div>
 
+    <ProUpsell
+      :open="showUpsell"
+      title="Ko'proq budilnik"
+      :desc="`Free rejada ${FREE_ALARM_LIMIT} ta budilnik. Pro bilan cheksiz!`"
+      @close="showUpsell = false"
+    />
+
     <div style="height:80px"></div>
   </div>
 </template>
@@ -112,6 +119,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAlarmStore } from '../stores/alarm.js'
 import { useAuthStore } from '../stores/auth.js'
+import ProUpsell from '../components/ProUpsell.vue'
 
 const alarm = useAlarmStore()
 const auth = useAuthStore()
@@ -125,7 +133,13 @@ const currentDate = ref('')
 
 const form = ref({ time: '07:00', label: '', days: [0,1,2,3,4] })
 
+const FREE_ALARM_LIMIT = 3
+const showUpsell = ref(false)
 function openAdd() {
+  if (!auth.isPro && alarm.alarms.length >= FREE_ALARM_LIMIT) {
+    showUpsell.value = true
+    return
+  }
   form.value = { time: '07:00', label: '', days: [0,1,2,3,4] }
   showModal.value = true
 }

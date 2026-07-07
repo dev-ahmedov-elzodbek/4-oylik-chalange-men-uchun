@@ -34,8 +34,21 @@
 
     <!-- Bottom actions -->
     <div class="sn-bottom">
+      <!-- Support -->
+      <router-link
+        to="/support"
+        class="sn-item"
+        :title="collapsed ? 'Yordam' : ''"
+      >
+        <span class="sn-icon" v-html="supportIcon"></span>
+        <transition name="sn-fade">
+          <span v-if="!collapsed" class="sn-label">Yordam</span>
+        </transition>
+      </router-link>
+
       <!-- Subscription / Pro upgrade -->
       <router-link
+        v-if="!auth.isPro"
         to="/subscription"
         class="sn-item sn-premium"
         :title="collapsed ? 'Pro rejaga o\'tish' : ''"
@@ -139,6 +152,7 @@ const chevronLeftIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="n
 const chevronRightIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`
 
 const trophyIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+const supportIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`
 
 const navItems = [
   { path: '/today',       icon: boltIcon,     label: 'nav.today' },
