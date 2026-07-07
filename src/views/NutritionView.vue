@@ -82,18 +82,21 @@
             📸 Rasm orqali aniqlash (AI)
             <span v-if="!auth.isPro" class="ai-pro-tag">👑 PRO</span>
           </div>
-          <div class="ai-upload-area" @click="triggerCamera" @dragover.prevent @drop.prevent="onDrop">
-            <div v-if="!previewImg" class="ai-placeholder">
-              <span style="font-size:36px">📷</span>
-              <span style="font-size:13px;color:var(--text-dim)">Rasm yoki foto tanlang</span>
-              <span style="font-size:11px;color:var(--text-dim)">Kamera yoki galereya</span>
-            </div>
-            <div v-else class="ai-preview-wrap">
-              <img :src="previewImg" class="ai-preview-img" />
-              <button class="ai-clear-btn" @click.stop="clearImage">✕</button>
-            </div>
+          <div v-if="previewImg" class="ai-preview-wrap">
+            <img :src="previewImg" class="ai-preview-img" />
+            <button class="ai-clear-btn" @click.stop="clearImage">✕</button>
           </div>
-          <input ref="fileInput" type="file" accept="image/*" capture="environment" style="display:none" @change="onFileChange" />
+          <div v-else class="ai-actions" @dragover.prevent @drop.prevent="onDrop">
+            <button class="ai-action-btn" @click="openCamera">
+              <span class="ai-action-icon">📷</span>
+              <span>Kamera</span>
+            </button>
+            <button class="ai-action-btn" @click="triggerGallery">
+              <span class="ai-action-icon">🖼️</span>
+              <span>Galereya</span>
+            </button>
+          </div>
+          <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onFileChange" />
           <button v-if="previewImg && !aiLoading" class="btn btn-primary" style="width:100%;margin-top:8px" @click="analyzeImage">
             🔍 AI bilan tahlil qilish
           </button>
@@ -130,6 +133,22 @@
       </div>
     </div>
 
+    <!-- Jonli kamera -->
+    <div v-if="cameraOn" class="camera-overlay" @click.self="closeCamera">
+      <div class="camera-box">
+        <video ref="videoEl" class="camera-video" autoplay playsinline muted></video>
+        <div v-if="cameraErr" class="camera-err">{{ cameraErr }}</div>
+        <div class="camera-controls">
+          <button class="camera-cancel" @click="closeCamera">✕</button>
+          <button class="camera-shot" :disabled="!!cameraErr" @click="capturePhoto">
+            <span class="camera-shot-inner"></span>
+          </button>
+          <button v-if="canFlip" class="camera-flip" @click="flipCamera">🔄</button>
+          <span v-else style="width:44px"></span>
+        </div>
+      </div>
+    </div>
+
     <ProUpsell
       :open="showUpsell"
       title="AI ovqat tahlili"
@@ -142,7 +161,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth.js'
 import { useNutritionStore } from '../stores/nutrition.js'
@@ -208,9 +227,70 @@ const aiLoading = ref(false)
 const aiError = ref('')
 const aiSuccess = ref('')
 
-function triggerCamera() { fileInput.value?.click() }
+function triggerGallery() { fileInput.value?.click() }
 function onFileChange(e) { const f = e.target.files[0]; if (f) processFile(f) }
 function onDrop(e) { const f = e.dataTransfer.files[0]; if (f) processFile(f) }
+
+// === Jonli kamera ===
+const cameraOn = ref(false)
+const videoEl = ref(null)
+const cameraErr = ref('')
+const canFlip = ref(false)
+let stream = null
+let facing = 'environment'
+
+async function startStream() {
+  cameraErr.value = ''
+  try {
+    if (stream) stream.getTracks().forEach(t => t.stop())
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: facing }, audio: false,
+    })
+    if (videoEl.value) videoEl.value.srcObject = stream
+    // Old/orqa kamera bor-yo'qligini tekshirish
+    const cams = await navigator.mediaDevices.enumerateDevices()
+    canFlip.value = cams.filter(d => d.kind === 'videoinput').length > 1
+  } catch (e) {
+    cameraErr.value = "Kameraga ruxsat berilmadi yoki topilmadi. Galereyadan tanlang."
+    console.error(e)
+  }
+}
+
+async function openCamera() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    // Eski qurilma — capture bilan fayl tanlash
+    fileInput.value?.setAttribute('capture', 'environment')
+    fileInput.value?.click()
+    return
+  }
+  cameraOn.value = true
+  await nextTick()
+  startStream()
+}
+
+function closeCamera() {
+  cameraOn.value = false
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null }
+}
+
+async function flipCamera() {
+  facing = facing === 'environment' ? 'user' : 'environment'
+  await startStream()
+}
+
+function capturePhoto() {
+  const v = videoEl.value
+  if (!v) return
+  const canvas = document.createElement('canvas')
+  canvas.width = v.videoWidth || 640
+  canvas.height = v.videoHeight || 480
+  canvas.getContext('2d').drawImage(v, 0, 0, canvas.width, canvas.height)
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+  previewImg.value = dataUrl
+  imageBase64.value = dataUrl.split(',')[1]
+  aiError.value = ''; aiSuccess.value = ''
+  closeCamera()
+}
 
 function processFile(file) {
   aiError.value = ''; aiSuccess.value = ''
@@ -277,6 +357,7 @@ async function saveLog() {
 }
 
 onMounted(() => nutrition.fetchLogs(todayStr))
+onUnmounted(() => { if (stream) stream.getTracks().forEach(t => t.stop()) })
 </script>
 
 <style scoped>
@@ -392,9 +473,52 @@ onMounted(() => nutrition.fetchLogs(todayStr))
 .ai-section { margin-bottom: 4px; }
 .ai-label { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--accent-light); display: flex; align-items: center; gap: 8px; }
 .ai-pro-tag { font-size: 10px; font-weight: 800; color: #f59e0b; background: rgba(245,158,11,0.15); padding: 2px 8px; border-radius: 8px; letter-spacing: 0.05em; }
-.ai-upload-area { border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 20px 16px; text-align: center; cursor: pointer; transition: border-color 0.2s; min-height: 110px; display: flex; align-items: center; justify-content: center; }
-.ai-upload-area:hover { border-color: var(--accent); }
-.ai-placeholder { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.ai-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ai-action-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 20px 12px;
+  border: 2px dashed var(--border2); border-radius: var(--radius-sm);
+  background: var(--surface2); color: var(--text);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s var(--ease-spring);
+}
+.ai-action-btn:hover { border-color: var(--accent); background: rgba(108,99,255,0.06); transform: translateY(-2px); }
+.ai-action-icon { font-size: 30px; }
+
+/* Jonli kamera */
+.camera-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.92);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.camera-box { width: 100%; max-width: 460px; }
+.camera-video {
+  width: 100%; border-radius: 18px;
+  aspect-ratio: 3/4; object-fit: cover;
+  background: #000;
+}
+.camera-err { color: #fca5a5; font-size: 13px; text-align: center; padding: 12px; }
+.camera-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 18px; padding: 0 20px;
+}
+.camera-cancel {
+  width: 44px; height: 44px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,0.15); color: white; font-size: 18px; cursor: pointer;
+}
+.camera-shot {
+  width: 70px; height: 70px; border-radius: 50%;
+  border: 4px solid white; background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.15s;
+}
+.camera-shot:active { transform: scale(0.92); }
+.camera-shot:disabled { opacity: 0.4; }
+.camera-shot-inner { width: 54px; height: 54px; border-radius: 50%; background: white; }
+.camera-flip {
+  width: 44px; height: 44px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,0.15); font-size: 18px; cursor: pointer;
+}
 .ai-preview-wrap { position: relative; width: 100%; }
 .ai-preview-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; }
 .ai-clear-btn { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
