@@ -44,6 +44,8 @@ export const useAuthStore = defineStore('auth', () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         user.value = session.user
+        // Realtime uchun JWT token (RLS jadvallar uchun kerak)
+        try { supabase.realtime.setAuth(session.access_token) } catch {}
         await fetchProfile()
       }
     } catch (e) {
@@ -54,6 +56,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     supabase.auth.onAuthStateChange(async (event, session) => {
       user.value = session?.user || null
+      // Realtime auth tokenini yangilash (login/logout/refresh)
+      try { supabase.realtime.setAuth(session?.access_token ?? null) } catch {}
       if (user.value) await fetchProfile()
       else profile.value = null
     })
