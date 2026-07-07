@@ -70,6 +70,54 @@
       </div>
     </div>
 
+    <!-- ===== PRO BOSHQARUV TAB ===== -->
+    <div v-if="activeTab === 'pro' && !loading">
+      <div class="card">
+        <div class="pro-intro">
+          <div class="pro-intro-icon">💎</div>
+          <div>
+            <div class="pro-intro-title">Pro obunani qo'lda boshqarish</div>
+            <div class="pro-intro-sub">To'lovdan mustaqil — istagan foydalanuvchini Pro/Premium'ga chiqaring yoki bekor qiling. Hozir <b>{{ proCount }}</b> ta Pro foydalanuvchi.</div>
+          </div>
+        </div>
+
+        <div class="pro-controls">
+          <input v-model="proSearch" class="search-input" placeholder="🔍 Ism yoki email..." />
+          <div class="pro-filters">
+            <button v-for="f in [{k:'all',l:'Hammasi'},{k:'pro',l:'Pro'},{k:'premium',l:'Premium'},{k:'free',l:'Free'}]"
+              :key="f.k" class="pro-filter-btn" :class="{ active: proFilterPlan === f.k }"
+              @click="proFilterPlan = f.k">{{ f.l }}</button>
+          </div>
+        </div>
+
+        <transition name="fade">
+          <div v-if="proMsg" class="pro-msg">{{ proMsg }}</div>
+        </transition>
+
+        <div class="pro-list">
+          <div v-for="user in proUsers" :key="user.id" class="pro-item" :class="{ 'is-pro': ['pro','premium'].includes(user.subscription_plan) }">
+            <div class="user-avatar" :class="avatarClass(user.role)">{{ userInitials(user) }}</div>
+            <div class="pro-user-info">
+              <div class="user-name">{{ user.full_name || 'Nomsiz' }}</div>
+              <div class="user-email">{{ user.email }}</div>
+              <div class="pro-plan-row">
+                <span class="plan-badge" :class="planBadge(user.subscription_plan)">{{ planLabel(user.subscription_plan) }}</span>
+                <span v-if="planEndText(user)" class="plan-end">{{ planEndText(user) }}</span>
+              </div>
+            </div>
+            <div class="pro-actions">
+              <button class="pro-btn grant" @click="setPlan(user.id, 'pro', 30)">Pro 30k</button>
+              <button class="pro-btn grant" @click="setPlan(user.id, 'pro', 365)">Pro 1y</button>
+              <button class="pro-btn grant-forever" @click="setPlan(user.id, 'pro', null)">Pro ∞</button>
+              <button class="pro-btn premium" @click="setPlan(user.id, 'premium', 30)">Premium 30k</button>
+              <button v-if="['pro','premium'].includes(user.subscription_plan)" class="pro-btn revoke" @click="setPlan(user.id, 'free')">Bekor</button>
+            </div>
+          </div>
+          <div v-if="!proUsers.length" class="empty-state">Foydalanuvchi topilmadi</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== ADMINS TAB ===== -->
     <div v-if="activeTab === 'admins' && !loading">
       <div class="card">
@@ -360,6 +408,69 @@ const search = ref('')
 const loading = ref(false)
 const error = ref('')
 
+// ── Pro boshqaruv ──
+const proSearch = ref('')
+const proMsg = ref('')
+const proFilterPlan = ref('all')
+
+const proUsers = computed(() => {
+  let list = users.value
+  if (proFilterPlan.value !== 'all') {
+    list = list.filter(u => (u.subscription_plan || 'free') === proFilterPlan.value)
+  }
+  const q = proSearch.value.trim().toLowerCase()
+  if (q) list = list.filter(u =>
+    (u.full_name || '').toLowerCase().includes(q) ||
+    (u.email || '').toLowerCase().includes(q))
+  // Pro/premium yuqorida
+  return [...list].sort((a, b) => {
+    const rank = p => ({ premium: 0, pro: 1, free: 2 }[p || 'free'])
+    return rank(a.subscription_plan) - rank(b.subscription_plan)
+  })
+})
+
+const proCount = computed(() =>
+  users.value.filter(u => ['pro', 'premium'].includes(u.subscription_plan)).length)
+
+function planBadge(plan) {
+  return { pro: 'plan-pro', premium: 'plan-premium' }[plan] || 'plan-free'
+}
+function planLabel(plan) {
+  return { pro: '💎 Pro', premium: '👑 Premium' }[plan] || 'Free'
+}
+function planEndText(u) {
+  if (!['pro', 'premium'].includes(u.subscription_plan)) return ''
+  if (!u.subscription_ends_at) return '∞ Doimiy'
+  const end = new Date(u.subscription_ends_at)
+  const days = Math.ceil((end - new Date()) / 86400000)
+  return days > 0 ? `${days} kun qoldi` : 'Muddati tugagan'
+}
+
+async function setPlan(userId, plan, days = null) {
+  proMsg.value = ''
+  const { data, error: err } = await supabase.rpc('admin_set_plan', {
+    target: userId, new_plan: plan, days
+  })
+  if (err || data !== 'ok') {
+    proMsg.value = `Xatolik: ${err?.message || data}`
+    return
+  }
+  // Lokal yangilash
+  const u = users.value.find(u => u.id === userId)
+  if (u) {
+    u.subscription_plan = plan
+    u.subscription_status = plan === 'free' ? 'inactive' : 'active'
+    u.subscription_ends_at = plan === 'free' || days === null
+      ? (plan === 'free' ? null : null)
+      : new Date(Date.now() + days * 86400000).toISOString()
+  }
+  const name = u?.full_name || u?.email || 'Foydalanuvchi'
+  proMsg.value = plan === 'free'
+    ? `✓ ${name} — Pro bekor qilindi`
+    : `✓ ${name} — ${planLabel(plan)} berildi${days ? ` (${days} kun)` : ' (doimiy)'}`
+  setTimeout(() => proMsg.value = '', 4000)
+}
+
 // User stats
 const userStatsMap = ref({}) // userId -> { completions, totalPoints, lastActive, streak, categoryBreakdown }
 const loadingUserStats = ref(false)
@@ -370,6 +481,7 @@ const editModal = ref({ open: false, id: null, full_name: '', email: '', directi
 
 const tabs = [
   { id: 'users', icon: '👥', label: 'Foydalanuvchilar' },
+  { id: 'pro', icon: '💎', label: 'Pro boshqaruv' },
   { id: 'admins', icon: '🛡️', label: 'Adminlar' },
   { id: 'stats', icon: '', label: 'Statistika' },
   { id: 'user_stats', icon: '', label: 'Faollik' },
@@ -603,7 +715,7 @@ async function loadData() {
   try {
     const { data: u, error: uErr } = await supabase
       .from('profiles')
-      .select('id, email, full_name, role, direction, onboarding_done, created_at')
+      .select('id, email, full_name, role, direction, onboarding_done, created_at, subscription_plan, subscription_status, subscription_ends_at')
       .order('created_at', { ascending: false })
 
     if (uErr) {
@@ -630,6 +742,65 @@ onMounted(loadData)
 </script>
 
 <style scoped>
+/* ── Pro boshqaruv ── */
+.pro-intro { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.pro-intro-icon { font-size: 34px; }
+.pro-intro-title { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+.pro-intro-sub { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-top: 3px; }
+.pro-intro-sub b { color: var(--accent-light); }
+
+.pro-controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.pro-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.pro-filter-btn {
+  padding: 6px 14px; border-radius: 20px;
+  border: 1px solid var(--border2); background: var(--surface2);
+  color: var(--text-dim); font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.pro-filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.pro-msg {
+  background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3);
+  color: var(--success); padding: 10px 14px; border-radius: var(--radius-sm);
+  font-size: 13px; margin-bottom: 12px; font-weight: 500;
+}
+
+.pro-list { display: flex; flex-direction: column; gap: 8px; }
+.pro-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
+  transition: border-color 0.2s;
+}
+.pro-item.is-pro { border-color: rgba(245,158,11,0.3); background: linear-gradient(135deg, rgba(245,158,11,0.05), transparent); }
+.pro-user-info { flex: 1; min-width: 140px; }
+.pro-plan-row { display: flex; align-items: center; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
+.plan-badge { font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 10px; font-family: var(--font-mono); }
+.plan-free { background: var(--surface3); color: var(--text-dim); }
+.plan-pro { background: rgba(108,99,255,0.18); color: var(--accent-light); }
+.plan-premium { background: rgba(245,158,11,0.18); color: #f59e0b; }
+.plan-end { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); }
+
+.pro-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.pro-btn {
+  padding: 7px 12px; border-radius: 8px; border: none; cursor: pointer;
+  font-size: 12px; font-weight: 700; font-family: var(--font-body);
+  transition: all 0.18s var(--ease-spring);
+}
+.pro-btn:hover { transform: translateY(-1px); }
+.pro-btn.grant { background: rgba(108,99,255,0.15); color: var(--accent-light); }
+.pro-btn.grant:hover { background: rgba(108,99,255,0.25); }
+.pro-btn.grant-forever { background: linear-gradient(135deg, var(--accent), #8b5cf6); color: white; }
+.pro-btn.premium { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.pro-btn.premium:hover { background: rgba(245,158,11,0.25); }
+.pro-btn.revoke { background: rgba(239,68,68,0.12); color: var(--danger); }
+.pro-btn.revoke:hover { background: rgba(239,68,68,0.22); }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.25s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
 .page { padding: 20px 16px; max-width: 860px; margin: 0 auto; }
 .page-header { margin-bottom: 20px; }
 .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
