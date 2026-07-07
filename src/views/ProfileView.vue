@@ -112,6 +112,29 @@
           </label>
         </div>
 
+        <!-- Accent rang (Pro) -->
+        <div class="setting-item accent-item">
+          <div class="setting-label-wrap">
+            <span>🎨 Ilova rangi
+              <span v-if="!auth.isPro" class="mini-pro">PRO</span>
+            </span>
+            <span class="setting-hint">Interfeys aksent rangi</span>
+          </div>
+          <div class="accent-dots">
+            <button
+              v-for="(a, key) in accents" :key="key"
+              class="accent-dot"
+              :class="{ active: activeAccent === key, locked: !a.free && !auth.isPro }"
+              :style="{ background: a.accent }"
+              :title="a.name"
+              @click="pickAccent(key, a)"
+            >
+              <span v-if="activeAccent === key" class="accent-check">✓</span>
+              <span v-else-if="!a.free && !auth.isPro" class="accent-lock">🔒</span>
+            </button>
+          </div>
+        </div>
+
         <router-link to="/support" class="setting-link">
           <span>💬 Yordam va qo'llab-quvvatlash</span>
           <span class="setting-arrow">›</span>
@@ -185,6 +208,13 @@
       </button>
     </div>
 
+    <ProUpsell
+      :open="showAccentUpsell"
+      title="Ilova ranglari"
+      desc="Interfeys rangini o'zgartirish — Pro imkoniyat."
+      @close="showAccentUpsell = false"
+    />
+
     <button class="btn btn-logout btn-full anim-fade-up stagger-6" @click="logout">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Chiqish
@@ -202,8 +232,10 @@ import { useAuthStore } from '../stores/auth.js'
 import { icons } from '../icons.js'
 import { feedbackEnabled, toggleFeedback, playCheck } from '../utils/feedback.js'
 import { remindersEnabled, toggleReminders } from '../utils/reminders.js'
+import { ACCENTS, currentAccent, setAccent } from '../utils/theme.js'
 import { supabase } from '../supabase.js'
 import { onMounted } from 'vue'
+import ProUpsell from '../components/ProUpsell.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -268,6 +300,17 @@ async function setRem(v) {
   if (v && 'Notification' in window && Notification.permission === 'default') {
     await Notification.requestPermission()
   }
+}
+
+// ── Accent rang (Pro) ──
+const accents = ACCENTS
+const activeAccent = ref(currentAccent())
+const showAccentUpsell = ref(false)
+function pickAccent(key, a) {
+  if (!a.free && !auth.isPro) { showAccentUpsell.value = true; return }
+  activeAccent.value = key
+  setAccent(key)
+  playCheck()
 }
 
 const langs = [
@@ -552,6 +595,22 @@ async function logout() {
 .setting-link:hover { background: var(--surface2); }
 .setting-arrow { color: var(--text-dim); font-size: 20px; }
 .pro-link { color: #f59e0b; font-weight: 600; }
+.mini-pro { font-size: 9px; font-weight: 800; color: #f59e0b; background: rgba(245,158,11,0.15); padding: 1px 6px; border-radius: 6px; margin-left: 4px; vertical-align: middle; }
+
+.accent-item { flex-wrap: wrap; gap: 10px; }
+.accent-dots { display: flex; gap: 8px; }
+.accent-dot {
+  width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--surface);
+  cursor: pointer; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 1px var(--border2);
+  transition: transform 0.2s var(--ease-spring);
+}
+.accent-dot:hover { transform: scale(1.15); }
+.accent-dot.active { box-shadow: 0 0 0 2px var(--text); }
+.accent-check { color: white; font-size: 13px; font-weight: 700; }
+.accent-lock { font-size: 10px; }
+.accent-dot.locked { opacity: 0.85; }
 
 /* ── Toggle switch ── */
 .pf-toggle { position: relative; display: inline-block; width: 46px; height: 26px; cursor: pointer; flex-shrink: 0; }

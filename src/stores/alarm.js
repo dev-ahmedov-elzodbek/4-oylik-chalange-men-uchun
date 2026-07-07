@@ -2,10 +2,21 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '../supabase.js'
 
+// ── Melodiyalar (nota ketma-ketligi) ──
+export const MELODIES = {
+  classic:  { name: 'Klassik',   pro: false, notes: [[880,0,0.3],[1100,0.35,0.3],[880,0.7,0.3],[1100,1.05,0.3],[1320,1.4,0.6]] },
+  gentle:   { name: 'Yumshoq',   pro: false, notes: [[523,0,0.4],[659,0.45,0.4],[784,0.9,0.6]] },
+  digital:  { name: 'Raqamli',   pro: true,  notes: [[1200,0,0.12],[1200,0.2,0.12],[1200,0.4,0.12],[1600,0.6,0.25]] },
+  chime:    { name: 'Qo\'ng\'iroq', pro: true, notes: [[1047,0,0.5],[1319,0.5,0.5],[1568,1.0,0.7]] },
+  energetic:{ name: 'Baquvvat',  pro: true,  notes: [[660,0,0.15],[880,0.18,0.15],[1100,0.36,0.15],[880,0.54,0.15],[1320,0.72,0.4]] },
+}
+
 export const useAlarmStore = defineStore('alarm', () => {
   const alarms = ref([])
-  const activeAlarm = ref(null) // jiringlayotgan budilnik
+  const activeAlarm = ref(null)
   let checkInterval = null
+  let ringLoop = null
+  const firedKeys = new Set()   // takror-fire himoyasi (id + HH:MM)
 
   async function fetchAlarms(userId) {
     const { data } = await supabase
@@ -22,6 +33,12 @@ export const useAlarmStore = defineStore('alarm', () => {
     if (data) alarms.value.push(data)
   }
 
+  async function updateAlarm(id, updates) {
+    await supabase.from('alarms').update(updates).eq('id', id)
+    const a = alarms.value.find(a => a.id === id)
+    if (a) Object.assign(a, updates)
+  }
+
   async function toggleAlarm(id, is_active) {
     await supabase.from('alarms').update({ is_active }).eq('id', id)
     const a = alarms.value.find(a => a.id === id)
@@ -33,48 +50,83 @@ export const useAlarmStore = defineStore('alarm', () => {
     alarms.value = alarms.value.filter(a => a.id !== id)
   }
 
-  function startChecking(userId) {
+  function startChecking() {
     if (checkInterval) clearInterval(checkInterval)
-    checkInterval = setInterval(() => {
-      checkAlarms()
-    }, 30000) // har 30 soniyada tekshir
+    checkInterval = setInterval(checkAlarms, 15000) // har 15 soniyada
     checkAlarms()
   }
 
   function checkAlarms() {
     const now = new Date()
-    const currentTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+    const hh = String(now.getHours()).padStart(2, '0')
+    const mm = String(now.getMinutes()).padStart(2, '0')
+    const currentTime = `${hh}:${mm}`
     const currentDay = now.getDay() === 0 ? 6 : now.getDay() - 1
+
+    // Bir daqiqa o'tsa eski kalitlarni tozalaymiz
+    if (mm === '00' && now.getSeconds() < 20) firedKeys.clear()
 
     for (const alarm of alarms.value) {
       if (!alarm.is_active) continue
-      if (alarm.time !== currentTime) continue
+      const at = (alarm.time || '').slice(0, 5)  // "HH:MM:SS" → "HH:MM"
+      if (at !== currentTime) continue
       if (alarm.days && alarm.days.length > 0 && !alarm.days.includes(currentDay)) continue
 
-      // Trigger alarm
-      activeAlarm.value = alarm
-      playAlarmSound()
+      const key = `${alarm.id}_${currentTime}`
+      if (firedKeys.has(key)) continue   // bu daqiqada allaqachon jiringladi
+      firedKeys.add(key)
 
-      // Browser notification
-      if (Notification.permission === 'granted') {
-        new Notification(`⏰ ${alarm.label || 'Budilnik'}`, {
-          body: alarm.time,
-          icon: '/icons/icon-192.png',
-          vibrate: [200, 100, 200]
-        })
-      }
+      trigger(alarm)
       break
     }
   }
 
-  function playAlarmSound() {
+  function trigger(alarm) {
+    activeAlarm.value = alarm
+    ring(alarm)
+    // Davomli jiringlash — foydalanuvchi to'xtatguncha (max 60s)
+    let count = 0
+    if (ringLoop) clearInterval(ringLoop)
+    ringLoop = setInterval(() => {
+      if (!activeAlarm.value || count++ > 20) { clearInterval(ringLoop); return }
+      ring(alarm)
+    }, 3000)
+
+    // Qurilma bildirishnomasi
+    notifyDevice(alarm)
+  }
+
+  function ring(alarm) {
+    playMelody(alarm?.sound || 'classic')
+    if (alarm?.vibrate !== false) vibrate()
+  }
+
+  function notifyDevice(alarm) {
     try {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const n = new Notification(`⏰ ${alarm.label || 'Budilnik'}`, {
+          body: `${(alarm.time || '').slice(0,5)} — Vaqt keldi!`,
+          icon: '/icon.svg',
+          tag: `alarm-${alarm.id}`,
+          requireInteraction: true,
+        })
+        n.onclick = () => { window.focus(); n.close() }
+      }
+    } catch (e) { /* qo'llab-quvvatlanmaydi */ }
+  }
+
+  function vibrate() {
+    try { navigator.vibrate?.([300, 150, 300, 150, 500]) } catch {}
+  }
+
+  function playMelody(soundKey) {
+    try {
+      const mel = MELODIES[soundKey] || MELODIES.classic
       const ctx = new (window.AudioContext || window.webkitAudioContext)()
-      function beep(freq, start, duration) {
+      for (const [freq, start, duration] of mel.notes) {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
-        osc.connect(gain)
-        gain.connect(ctx.destination)
+        osc.connect(gain); gain.connect(ctx.destination)
         osc.frequency.value = freq
         osc.type = 'sine'
         gain.gain.setValueAtTime(0.3, ctx.currentTime + start)
@@ -82,24 +134,33 @@ export const useAlarmStore = defineStore('alarm', () => {
         osc.start(ctx.currentTime + start)
         osc.stop(ctx.currentTime + start + duration)
       }
-      // Alarm melodiyasi
-      beep(880, 0, 0.3)
-      beep(1100, 0.35, 0.3)
-      beep(880, 0.7, 0.3)
-      beep(1100, 1.05, 0.3)
-      beep(1320, 1.4, 0.6)
-    } catch (e) {
-      console.log('Audio error:', e)
-    }
+    } catch (e) { console.log('Audio error:', e) }
   }
+  // Namuna eshittirish (sozlamada tanlash uchun)
+  function preview(soundKey) { playMelody(soundKey) }
 
   function dismissAlarm() {
     activeAlarm.value = null
+    if (ringLoop) { clearInterval(ringLoop); ringLoop = null }
+    try { navigator.vibrate?.(0) } catch {}
+  }
+
+  function snoozeAlarm(minutes = 5) {
+    const a = activeAlarm.value
+    dismissAlarm()
+    if (!a) return
+    setTimeout(() => trigger({ ...a, label: (a.label || 'Budilnik') + ' (snooze)' }), minutes * 60 * 1000)
   }
 
   function stopChecking() {
     if (checkInterval) clearInterval(checkInterval)
+    if (ringLoop) clearInterval(ringLoop)
   }
 
-  return { alarms, activeAlarm, fetchAlarms, addAlarm, toggleAlarm, deleteAlarm, startChecking, stopChecking, dismissAlarm, playAlarmSound }
+  return {
+    alarms, activeAlarm,
+    fetchAlarms, addAlarm, updateAlarm, toggleAlarm, deleteAlarm,
+    startChecking, stopChecking, dismissAlarm, snoozeAlarm,
+    playAlarmSound: () => playMelody('classic'), preview,
+  }
 })

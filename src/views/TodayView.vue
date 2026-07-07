@@ -392,7 +392,7 @@ const streakInfo = computed(() => streakTier(streak.value.current))
 const MILESTONES = [3, 7, 14, 30, 60, 100]
 async function loadStreak() {
   if (!authStore.user?.id) return
-  streak.value = await getStreak(authStore.user.id)
+  streak.value = await getStreak(authStore.user.id, authStore.isPro)
   // Yangi bosqichga yetdi — nishonlaymiz (bir marta)
   const cur = streak.value.current
   const reached = MILESTONES.filter(m => cur >= m).pop()

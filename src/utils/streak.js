@@ -70,13 +70,14 @@ function saveUsed(userId, set) {
 }
 
 // activeDays + muzlatishlar bilan streak hisoblash
-export function computeStreakWithFreeze(activeDays, userId) {
+export function computeStreakWithFreeze(activeDays, userId, isPro = false) {
   const raw = computeStreak(activeDays)
   if (!activeDays || activeDays.size === 0) {
-    return { ...raw, freezesAvailable: 0, freezesEarned: 0 }
+    return { ...raw, freezesAvailable: isPro ? 2 : 0, freezesEarned: isPro ? 2 : 0 }
   }
 
-  const earned = Math.floor(activeDays.size / 7)  // har 7 kunga 1 muzlatish
+  // har 7 kunga 1 muzlatish + Pro uchun +2 bonus
+  const earned = Math.floor(activeDays.size / 7) + (isPro ? 2 : 0)
   const used = loadUsed(userId)
   let available = Math.max(0, earned - used.size)
 
@@ -116,9 +117,9 @@ export function computeStreakWithFreeze(activeDays, userId) {
 }
 
 // Bitta chaqiriqda: userId → { current, longest, freezesAvailable }
-export async function getStreak(userId) {
+export async function getStreak(userId, isPro = false) {
   const days = await fetchActiveDays(userId)
-  return computeStreakWithFreeze(days, userId)
+  return computeStreakWithFreeze(days, userId, isPro)
 }
 
 // Alanga darajasi (rang/emoji) — motivatsiya uchun

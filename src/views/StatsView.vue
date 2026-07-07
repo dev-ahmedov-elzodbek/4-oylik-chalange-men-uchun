@@ -217,7 +217,7 @@ onMounted(async () => {
   await tasks.fetchTasks()
   for (const d of last7.value) await tasks.fetchCompletions(ds(d))
   if (auth.user?.id) {
-    streak.value = await getStreak(auth.user.id)
+    streak.value = await getStreak(auth.user.id, auth.isPro)
     // Yutuqlar uchun: jami bajarilgan vazifalar + taklif soni
     const { count } = await supabase.from('task_completions')
       .select('task_id', { count: 'exact', head: true })

@@ -60,9 +60,13 @@ import { useAuthStore } from './stores/auth.js'
 import BottomNav from './components/BottomNav.vue'
 import SideNav from './components/SideNav.vue'
 import { startReminders } from './utils/reminders.js'
+import { initAccent } from './utils/theme.js'
 
 const auth = useAuthStore()
 const route = useRoute()
+
+// Saqlangan accent rangni darhol qo'llash
+initAccent()
 
 onMounted(() => {
   // Kunlik motivatsion bildirishnomalarni yoqish

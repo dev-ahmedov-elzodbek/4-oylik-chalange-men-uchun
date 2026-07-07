@@ -80,6 +80,39 @@
           </div>
         </div>
 
+        <!-- Melodiya -->
+        <div class="form-group">
+          <label class="label">Melodiya</label>
+          <div class="melody-grid">
+            <button
+              v-for="(m, key) in melodies" :key="key"
+              class="melody-btn"
+              :class="{ active: form.sound === key, locked: m.pro && !auth.isPro }"
+              @click="selectMelody(key, m)"
+            >
+              <span>{{ m.name }}</span>
+              <span v-if="m.pro && !auth.isPro" class="melody-lock">👑</span>
+              <span v-else class="melody-play" @click.stop="alarm.preview(key)">▶</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Vibratsiya + Snooze -->
+        <div class="alarm-opts">
+          <label class="alarm-opt">
+            <span>📳 Vibratsiya</span>
+            <input type="checkbox" v-model="form.vibrate" class="opt-check" />
+          </label>
+          <div class="alarm-opt">
+            <span>💤 Snooze</span>
+            <select v-model.number="form.snooze_min" class="opt-select">
+              <option :value="5">5 daqiqa</option>
+              <option :value="10">10 daqiqa</option>
+              <option :value="15">15 daqiqa</option>
+            </select>
+          </div>
+        </div>
+
         <div style="display:flex;gap:8px;margin-top:16px">
           <button class="btn btn-primary" style="flex:1" @click="saveAlarm" :disabled="saving">
             {{ saving ? 'Saqlanmoqda...' : 'Saqlash' }}
@@ -99,7 +132,7 @@
           ✓ To'xtatish
         </button>
         <button class="btn btn-outline ringing-btn" style="margin-top:8px" @click="snooze">
-          5 daqiqa keyinroq
+          💤 {{ alarm.activeAlarm.snooze_min || 5 }} daqiqa keyinroq
         </button>
       </div>
     </div>
@@ -117,12 +150,13 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useAlarmStore } from '../stores/alarm.js'
+import { useAlarmStore, MELODIES } from '../stores/alarm.js'
 import { useAuthStore } from '../stores/auth.js'
 import ProUpsell from '../components/ProUpsell.vue'
 
 const alarm = useAlarmStore()
 const auth = useAuthStore()
+const melodies = MELODIES
 
 const dayNames = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
 const showModal = ref(false)
@@ -131,7 +165,13 @@ const notifGranted = ref(Notification.permission === 'granted')
 const currentTime = ref('')
 const currentDate = ref('')
 
-const form = ref({ time: '07:00', label: '', days: [0,1,2,3,4] })
+const form = ref({ time: '07:00', label: '', days: [0,1,2,3,4], sound: 'classic', vibrate: true, snooze_min: 5 })
+
+function selectMelody(key, m) {
+  if (m.pro && !auth.isPro) { showUpsell.value = true; return }
+  form.value.sound = key
+  alarm.preview(key)
+}
 
 const FREE_ALARM_LIMIT = 3
 const showUpsell = ref(false)
@@ -140,7 +180,7 @@ function openAdd() {
     showUpsell.value = true
     return
   }
-  form.value = { time: '07:00', label: '', days: [0,1,2,3,4] }
+  form.value = { time: '07:00', label: '', days: [0,1,2,3,4], sound: 'classic', vibrate: true, snooze_min: 5 }
   showModal.value = true
 }
 
@@ -161,6 +201,9 @@ async function saveAlarm() {
     time: form.value.time,
     label: form.value.label,
     days: form.value.days,
+    sound: form.value.sound,
+    vibrate: form.value.vibrate,
+    snooze_min: form.value.snooze_min,
     is_active: true
   })
   showModal.value = false
@@ -173,15 +216,8 @@ async function requestNotif() {
 }
 
 function snooze() {
-  alarm.dismissAlarm()
-  const now = new Date()
-  now.setMinutes(now.getMinutes() + 5)
-  const snoozeTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
-  // Vaqtinchalik 5 daqiqa keyingi alarm
-  setTimeout(() => {
-    alarm.activeAlarm.value = { time: snoozeTime, label: 'Snooze' }
-    alarm.playAlarmSound()
-  }, 5 * 60 * 1000)
+  const mins = alarm.activeAlarm?.snooze_min || 5
+  alarm.snoozeAlarm(mins)
 }
 
 // Clock update
@@ -317,6 +353,30 @@ onUnmounted(() => {
 .days-row { display: flex; gap: 6px; flex-wrap: wrap; }
 .day-btn { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: var(--font-body); }
 .day-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* Melodiya */
+.melody-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.melody-btn {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--border2); background: var(--surface2);
+  color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; font-family: var(--font-body);
+}
+.melody-btn.active { border-color: var(--accent); background: rgba(108,99,255,0.12); }
+.melody-btn.locked { opacity: 0.7; }
+.melody-play { color: var(--accent-light); font-size: 11px; }
+.melody-lock { font-size: 12px; }
+
+/* Opsiyalar */
+.alarm-opts { display: flex; gap: 10px; margin-top: 14px; }
+.alarm-opt {
+  flex: 1; display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; padding: 12px 14px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 12px; font-size: 13px; font-weight: 600;
+}
+.opt-check { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; }
+.opt-select { background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); padding: 5px 8px; font-size: 12px; cursor: pointer; }
 
 /* Ringing overlay */
 .ringing-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px); }
