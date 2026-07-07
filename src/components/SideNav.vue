@@ -66,10 +66,12 @@
         class="sn-item sn-admin"
         :title="collapsed ? 'Admin' : ''"
       >
-        <span class="sn-icon" v-html="shieldIcon"></span>
+        <span class="sn-icon" v-html="shieldIcon">
+        </span>
         <transition name="sn-fade">
           <span v-if="!collapsed" class="sn-label">Admin</span>
         </transition>
+        <span v-if="supportUnread > 0" class="sn-notif-badge">{{ supportUnread > 9 ? '9+' : supportUnread }}</span>
       </router-link>
 
       <!-- Theme toggle -->
@@ -116,15 +118,34 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth.js'
+import { supabase } from '../supabase.js'
 
 const props = defineProps(['theme', 'collapsed'])
 defineEmits(['toggle-theme', 'toggle-collapse'])
 
 const { t } = useI18n()
 const auth = useAuthStore()
+
+// ── O'qilmagan support xabarlar (admin uchun) ──
+const supportUnread = ref(0)
+let supportCh = null
+async function loadUnread() {
+  if (!auth.isAdmin) { supportUnread.value = 0; return }
+  const { data } = await supabase.rpc('support_unread_count')
+  supportUnread.value = Number(data) || 0
+}
+function subscribeUnread() {
+  if (supportCh) return
+  supportCh = supabase.channel('sidenav:support')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'support_messages' }, loadUnread)
+    .subscribe()
+}
+onMounted(() => { loadUnread(); if (auth.isAdmin) subscribeUnread() })
+onUnmounted(() => { if (supportCh) supabase.removeChannel(supportCh) })
+watch(() => auth.isAdmin, (v) => { if (v) { loadUnread(); subscribeUnread() } })
 
 const roleLabel = computed(() => {
   const r = auth.profile?.role
@@ -262,6 +283,22 @@ const navItems = [
 .sn-premium::before { background: #f59e0b; }
 .sn-premium:hover { background: rgba(245,158,11,0.12) !important; color: #f59e0b !important; border-color: rgba(245,158,11,0.3) !important; transform: none; }
 .sn-premium .sn-icon { filter: drop-shadow(0 0 5px rgba(245,158,11,0.5)); }
+
+/* Notif badge (o'qilmagan support) */
+.sn-notif-badge {
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 9px;
+  background: var(--danger); color: white;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-left: auto;
+  box-shadow: 0 0 0 2px var(--surface);
+  animation: notifPulse 2s ease infinite;
+}
+@keyframes notifPulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.12); }
+}
 
 /* Admin item */
 .sn-admin { color: #f59e0b; }
