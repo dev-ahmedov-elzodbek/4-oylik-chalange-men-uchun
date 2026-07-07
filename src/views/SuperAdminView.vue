@@ -515,6 +515,7 @@ const threadMessages = ref([])
 const supportDraft = ref('')
 const supportScrollEl = ref(null)
 let supportChannel = null
+let supportPollTimer = null
 
 const totalUnread = computed(() => threads.value.reduce((s, t) => s + Number(t.unread || 0), 0))
 
@@ -545,22 +546,28 @@ async function sendReply() {
     user_id: activeThread.value.user_id, sender: 'admin', message: text,
   })
   if (error) { supportDraft.value = text; console.error(error) }
+  else await pollSupport()
+}
+// Polling — realtime WS ishlamasa ham jonli ishlaydi
+async function pollSupport() {
+  await loadThreads()
+  if (activeThread.value) {
+    const { data } = await supabase.from('support_messages')
+      .select('*').eq('user_id', activeThread.value.user_id).order('created_at', { ascending: true })
+    if (data && data.length !== threadMessages.value.length) {
+      const grew = data.length > threadMessages.value.length
+      threadMessages.value = data
+      if (grew) {
+        scrollSupport()
+        await supabase.from('support_messages').update({ is_read: true })
+          .eq('user_id', activeThread.value.user_id).eq('sender', 'user').eq('is_read', false)
+      }
+    }
+  }
 }
 function subscribeSupport() {
-  supportChannel = supabase.channel('support:admin')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' },
-      (payload) => {
-        const msg = payload.new
-        // Ochiq suhbatga tegishli bo'lsa — qo'shamiz
-        if (activeThread.value && msg.user_id === activeThread.value.user_id) {
-          if (!threadMessages.value.find(m => m.id === msg.id)) {
-            threadMessages.value.push(msg)
-            scrollSupport()
-          }
-        }
-        loadThreads()
-      })
-    .subscribe()
+  if (supportPollTimer) clearInterval(supportPollTimer)
+  supportPollTimer = setInterval(pollSupport, 3000)
 }
 
 async function setPlan(userId, plan, days = null) {
@@ -861,7 +868,10 @@ onMounted(() => {
   loadThreads()
   subscribeSupport()
 })
-onUnmounted(() => { if (supportChannel) supabase.removeChannel(supportChannel) })
+onUnmounted(() => {
+  if (supportChannel) supabase.removeChannel(supportChannel)
+  if (supportPollTimer) clearInterval(supportPollTimer)
+})
 </script>
 
 <style scoped>

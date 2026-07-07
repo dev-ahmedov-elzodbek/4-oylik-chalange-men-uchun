@@ -104,30 +104,34 @@ async function send() {
     message: text,
   })
   if (error) { draft.value = text; console.error(error) }
+  else await poll()
   sending.value = false
 }
 
-function subscribe() {
+// Jim yangilash (polling) — yangi xabar bo'lsa qo'shamiz
+async function poll() {
   if (!auth.user?.id) return
-  channel = supabase
-    .channel(`support:${auth.user.id}`)
-    .on('postgres_changes', {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'support_messages',
-      filter: `user_id=eq.${auth.user.id}`,
-    }, (payload) => {
-      // Duplikatni oldini olish
-      if (!messages.value.find(m => m.id === payload.new.id)) {
-        messages.value.push(payload.new)
-        scrollBottom()
-      }
-    })
-    .subscribe()
+  const { data } = await supabase
+    .from('support_messages')
+    .select('*')
+    .eq('user_id', auth.user.id)
+    .order('created_at', { ascending: true })
+  if (!data) return
+  if (data.length !== messages.value.length) {
+    const hadMore = data.length > messages.value.length
+    messages.value = data
+    if (hadMore) {
+      scrollBottom()
+      // Admin javoblarini o'qilgan deb belgilash
+      await supabase.from('support_messages').update({ is_read: true })
+        .eq('user_id', auth.user.id).eq('sender', 'admin').eq('is_read', false)
+    }
+  }
 }
 
-onMounted(() => { load(); subscribe() })
-onUnmounted(() => { if (channel) supabase.removeChannel(channel) })
+let pollTimer = null
+onMounted(() => { load(); pollTimer = setInterval(poll, 3000) })
+onUnmounted(() => { if (pollTimer) clearInterval(pollTimer); if (channel) supabase.removeChannel(channel) })
 </script>
 
 <style scoped>

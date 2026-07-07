@@ -131,21 +131,19 @@ const auth = useAuthStore()
 
 // ── O'qilmagan support xabarlar (admin uchun) ──
 const supportUnread = ref(0)
-let supportCh = null
+let unreadTimer = null
 async function loadUnread() {
   if (!auth.isAdmin) { supportUnread.value = 0; return }
   const { data } = await supabase.rpc('support_unread_count')
   supportUnread.value = Number(data) || 0
 }
-function subscribeUnread() {
-  if (supportCh) return
-  supportCh = supabase.channel('sidenav:support')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'support_messages' }, loadUnread)
-    .subscribe()
+function startUnreadPoll() {
+  if (unreadTimer) return
+  unreadTimer = setInterval(loadUnread, 8000)   // har 8 soniyada
 }
-onMounted(() => { loadUnread(); if (auth.isAdmin) subscribeUnread() })
-onUnmounted(() => { if (supportCh) supabase.removeChannel(supportCh) })
-watch(() => auth.isAdmin, (v) => { if (v) { loadUnread(); subscribeUnread() } })
+onMounted(() => { loadUnread(); if (auth.isAdmin) startUnreadPoll() })
+onUnmounted(() => { if (unreadTimer) clearInterval(unreadTimer) })
+watch(() => auth.isAdmin, (v) => { if (v) { loadUnread(); startUnreadPoll() } })
 
 const roleLabel = computed(() => {
   const r = auth.profile?.role
