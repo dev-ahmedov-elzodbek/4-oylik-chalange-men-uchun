@@ -239,33 +239,64 @@ const canFlip = ref(false)
 let stream = null
 let facing = 'environment'
 
-async function startStream() {
-  cameraErr.value = ''
+function camErrorText(e) {
+  const name = e?.name || ''
+  if (name === 'NotAllowedError' || name === 'SecurityError')
+    return "Kameraga ruxsat berilmagan. Brauzer sozlamalari → Kamera → ruxsat bering."
+  if (name === 'NotFoundError' || name === 'DevicesNotFoundError')
+    return "Kamera topilmadi. Galereyadan rasm tanlang."
+  if (name === 'NotReadableError' || name === 'TrackStartError')
+    return "Kamera band (boshqa ilova ishlatyapti). Galereyadan tanlang."
+  return "Kamera ochilmadi (" + (name || e?.message || '?') + "). Galereyadan tanlang."
+}
+
+// getUserMedia — avval facingMode bilan, bo'lmasa istalgan kamera
+async function getStream() {
   try {
-    if (stream) stream.getTracks().forEach(t => t.stop())
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: facing }, audio: false,
-    })
-    if (videoEl.value) videoEl.value.srcObject = stream
-    // Old/orqa kamera bor-yo'qligini tekshirish
-    const cams = await navigator.mediaDevices.enumerateDevices()
-    canFlip.value = cams.filter(d => d.kind === 'videoinput').length > 1
+    return await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false })
   } catch (e) {
-    cameraErr.value = "Kameraga ruxsat berilmadi yoki topilmadi. Galereyadan tanlang."
-    console.error(e)
+    // Overconstrained/NotFound bo'lsa — cheklovsiz qayta urinish
+    if (['OverconstrainedError', 'NotFoundError', 'ConstraintNotSatisfiedError'].includes(e?.name)) {
+      return await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    }
+    throw e
   }
 }
 
+async function attachStream() {
+  if (videoEl.value) {
+    videoEl.value.srcObject = stream
+    try { await videoEl.value.play() } catch { /* autoplay */ }
+  }
+  try {
+    const cams = await navigator.mediaDevices.enumerateDevices()
+    canFlip.value = cams.filter(d => d.kind === 'videoinput').length > 1
+  } catch { /* enumerate ixtiyoriy */ }
+}
+
 async function openCamera() {
+  cameraErr.value = ''
   if (!navigator.mediaDevices?.getUserMedia) {
-    // Eski qurilma — capture bilan fayl tanlash
+    // Eski/webview brauzer — capture bilan fayl tanlash
+    fileInput.value?.setAttribute('capture', 'environment')
+    fileInput.value?.click()
+    return
+  }
+  // MUHIM: getUserMedia'ni tugma bosilgan zahoti (gesture ichida) chaqiramiz — iOS uchun
+  try {
+    if (stream) stream.getTracks().forEach(t => t.stop())
+    stream = await getStream()
+  } catch (e) {
+    // Modal ochilmaydi, o'rniga galereya taklif qilamiz
+    cameraErr.value = camErrorText(e)
+    console.error('camera error:', e)
     fileInput.value?.setAttribute('capture', 'environment')
     fileInput.value?.click()
     return
   }
   cameraOn.value = true
   await nextTick()
-  startStream()
+  await attachStream()
 }
 
 function closeCamera() {
@@ -275,7 +306,14 @@ function closeCamera() {
 
 async function flipCamera() {
   facing = facing === 'environment' ? 'user' : 'environment'
-  await startStream()
+  cameraErr.value = ''
+  try {
+    if (stream) stream.getTracks().forEach(t => t.stop())
+    stream = await getStream()
+    await attachStream()
+  } catch (e) {
+    cameraErr.value = camErrorText(e)
+  }
 }
 
 function capturePhoto() {
