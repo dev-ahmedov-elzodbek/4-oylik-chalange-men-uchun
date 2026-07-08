@@ -38,7 +38,7 @@ export const messages = {
         high: 'Yuqori (haftada 3-5 marta sport)', very_high: 'Juda yuqori (har kun intensiv)'
       }
     },
-    nav: { today: 'Bugun', calendar: 'Kalendar', alarm: 'Budilnik', stats: 'Statistika', leaderboard: 'Reyting', schedule: 'Jadval', nutrition: 'Ovqat', profile: 'Profil' },
+    nav: { today: 'Bugun', calendar: 'Kalendar', alarm: 'Budilnik', stats: 'Statistika', leaderboard: 'Reyting', finance: 'Moliya', schedule: 'Jadval', nutrition: 'Ovqat', profile: 'Profil' },
     today: {
       greeting: 'Xayrli kun', points: 'ball', streak: 'kun ketma-ket',
       complete: 'Bajarildi!', addTask: 'Vazifa qo\'shish', noTasks: 'Vazifalar yo\'q'
@@ -93,7 +93,7 @@ export const messages = {
         high: 'Moderately active (3-5x/week)', very_high: 'Very active (daily intense)'
       }
     },
-    nav: { today: 'Today', calendar: 'Calendar', alarm: 'Alarm', stats: 'Stats', leaderboard: 'Ranking', schedule: 'Schedule', nutrition: 'Nutrition', profile: 'Profile' },
+    nav: { today: 'Today', calendar: 'Calendar', alarm: 'Alarm', stats: 'Stats', leaderboard: 'Ranking', finance: 'Finance', schedule: 'Schedule', nutrition: 'Nutrition', profile: 'Profile' },
     today: {
       greeting: 'Good day', points: 'pts', streak: 'day streak',
       complete: 'Completed!', addTask: 'Add task', noTasks: 'No tasks yet'
@@ -148,7 +148,7 @@ export const messages = {
         high: 'Высокая (3-5 раз/нед)', very_high: 'Очень высокая (каждый день)'
       }
     },
-    nav: { today: 'Сегодня', calendar: 'Календарь', alarm: 'Будильник', stats: 'Статистика', leaderboard: 'Рейтинг', schedule: 'Расписание', nutrition: 'Питание', profile: 'Профиль' },
+    nav: { today: 'Сегодня', calendar: 'Календарь', alarm: 'Будильник', stats: 'Статистика', leaderboard: 'Рейтинг', finance: 'Финансы', schedule: 'Расписание', nutrition: 'Питание', profile: 'Профиль' },
     today: {
       greeting: 'Добрый день', points: 'очков', streak: 'дней подряд',
       complete: 'Выполнено!', addTask: 'Добавить задачу', noTasks: 'Задач пока нет'

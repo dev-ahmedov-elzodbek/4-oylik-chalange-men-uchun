@@ -118,6 +118,75 @@
       </div>
     </div>
 
+    <!-- ===== MOLIYA TAB ===== -->
+    <div v-if="activeTab === 'finance' && !loading">
+      <!-- Overall totals -->
+      <div class="fin-overview">
+        <div class="fin-ov-tile income">
+          <div class="fov-label">↑ Jami kirim</div>
+          <div class="fov-val">{{ fmtMoney(finTotals.income) }}</div>
+          <div class="fov-cur">so'm</div>
+        </div>
+        <div class="fin-ov-tile expense">
+          <div class="fov-label">↓ Jami chiqim</div>
+          <div class="fov-val">{{ fmtMoney(finTotals.expense) }}</div>
+          <div class="fov-cur">so'm</div>
+        </div>
+        <div class="fin-ov-tile balance" :class="{ neg: finTotals.balance < 0 }">
+          <div class="fov-label">= Balans</div>
+          <div class="fov-val">{{ fmtMoney(finTotals.balance) }}</div>
+          <div class="fov-cur">so'm</div>
+        </div>
+      </div>
+
+      <!-- Monthly chart -->
+      <div class="card">
+        <div class="card-title-row">
+          <div class="card-title">📊 Oylik kirim/chiqim (barcha userlar)</div>
+          <div class="fc-legend">
+            <span class="lg-item"><span class="lg-dot" style="background:#10b981"></span>Kirim</span>
+            <span class="lg-item"><span class="lg-dot" style="background:#ef4444"></span>Chiqim</span>
+          </div>
+        </div>
+        <div v-if="finMonths.length" class="fin-bar-chart">
+          <div v-for="m in finMonths" :key="m.ym" class="fbc-col">
+            <div class="fbc-bars">
+              <div class="fbc-bar in" :style="{ height: finBarH(m.income) + '%' }" :title="'Kirim: ' + fmtMoney(m.income)"></div>
+              <div class="fbc-bar out" :style="{ height: finBarH(m.expense) + '%' }" :title="'Chiqim: ' + fmtMoney(m.expense)"></div>
+            </div>
+            <div class="fbc-label">{{ m.label }}</div>
+          </div>
+        </div>
+        <div v-else class="empty-state">Hali moliya ma'lumoti yo'q</div>
+      </div>
+
+      <!-- Per-user table -->
+      <div class="card">
+        <div class="card-title">👥 Foydalanuvchilar bo'yicha ({{ finByUser.length }})</div>
+        <div class="fin-user-list">
+          <div class="fin-user-head">
+            <span>Foydalanuvchi</span>
+            <span class="fuh-num">Kirim</span>
+            <span class="fuh-num">Chiqim</span>
+            <span class="fuh-num">Balans</span>
+          </div>
+          <div v-for="u in finByUser" :key="u.user_id" class="fin-user-row">
+            <div class="fur-user">
+              <div class="fur-avatar">{{ (u.display_name || 'U')[0].toUpperCase() }}</div>
+              <div class="fur-info">
+                <div class="fur-name">{{ u.display_name }}</div>
+                <div class="fur-email">{{ u.email }}</div>
+              </div>
+            </div>
+            <span class="fur-num in">{{ fmtMoney(u.income) }}</span>
+            <span class="fur-num out">{{ fmtMoney(u.expense) }}</span>
+            <span class="fur-num" :class="Number(u.balance) < 0 ? 'out' : 'bal'">{{ fmtMoney(u.balance) }}</span>
+          </div>
+          <div v-if="!finByUser.length" class="empty-state">Foydalanuvchilarда moliya yozuvi yo'q</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== SUPPORT TAB ===== -->
     <div v-if="activeTab === 'support' && !loading">
       <div class="support-admin">
@@ -508,6 +577,38 @@ function planEndText(u) {
   return days > 0 ? `${days} kun qoldi` : 'Muddati tugagan'
 }
 
+// ── Moliya (barcha userlar) ──
+const finByUser = ref([])
+const finMonthly = ref([])
+const finLoading = ref(false)
+
+function fmtMoney(n) { return Math.round(Number(n) || 0).toLocaleString('ru-RU').replace(/,/g, ' ') }
+
+const finTotals = computed(() => {
+  const income = finByUser.value.reduce((s, u) => s + Number(u.income), 0)
+  const expense = finByUser.value.reduce((s, u) => s + Number(u.expense), 0)
+  return { income, expense, balance: income - expense }
+})
+const finMonths = computed(() => finMonthly.value.map(m => {
+  const [y, mo] = m.ym.split('-')
+  return { ...m, label: ['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'][parseInt(mo) - 1] }
+}))
+const finChartMax = computed(() => Math.max(1, ...finMonths.value.flatMap(m => [Number(m.income), Number(m.expense)])))
+function finBarH(v) { return finChartMax.value ? Math.max(Number(v) > 0 ? 4 : 0, (Number(v) / finChartMax.value) * 100) : 0 }
+
+async function loadFinance() {
+  finLoading.value = true
+  try {
+    const [{ data: byUser }, { data: monthly }] = await Promise.all([
+      supabase.rpc('get_finance_by_user'),
+      supabase.rpc('get_finance_monthly'),
+    ])
+    finByUser.value = byUser || []
+    finMonthly.value = monthly || []
+  } catch (e) { console.error('finance load error:', e) }
+  finally { finLoading.value = false }
+}
+
 // ── Support (Yordam) chat ──
 const threads = ref([])
 const activeThread = ref(null)      // { user_id, display_name, email }
@@ -606,6 +707,7 @@ const editModal = ref({ open: false, id: null, full_name: '', email: '', directi
 const tabs = [
   { id: 'users', icon: '👥', label: 'Foydalanuvchilar' },
   { id: 'pro', icon: '💎', label: 'Pro boshqaruv' },
+  { id: 'finance', icon: '💵', label: 'Moliya' },
   { id: 'support', icon: '💬', label: 'Yordam' },
   { id: 'admins', icon: '🛡️', label: 'Adminlar' },
   { id: 'stats', icon: '', label: 'Statistika' },
@@ -867,6 +969,7 @@ onMounted(() => {
   loadData()
   loadThreads()
   subscribeSupport()
+  loadFinance()
 })
 onUnmounted(() => {
   if (supportChannel) supabase.removeChannel(supportChannel)
@@ -875,6 +978,52 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ── Moliya (admin) ── */
+.fin-overview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.fin-ov-tile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 12px; text-align: center; box-shadow: var(--shadow-sm); }
+.fin-ov-tile.income { border-top: 3px solid #10b981; }
+.fin-ov-tile.expense { border-top: 3px solid #ef4444; }
+.fin-ov-tile.balance { border-top: 3px solid var(--accent); }
+.fov-label { font-size: 12px; color: var(--text-dim); font-weight: 600; }
+.fov-val { font-family: var(--font-display); font-weight: 800; font-size: 18px; margin-top: 6px; word-break: break-all; }
+.income .fov-val { color: #10b981; }
+.expense .fov-val { color: #ef4444; }
+.balance .fov-val { color: var(--accent-light); }
+.balance.neg .fov-val { color: #ef4444; }
+.fov-cur { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+@media(max-width:480px){ .fov-val { font-size: 14px; } }
+
+.fc-legend { display: flex; gap: 12px; }
+.lg-item { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-dim); }
+.lg-dot { width: 9px; height: 9px; border-radius: 3px; }
+
+.fin-bar-chart { display: flex; gap: 8px; height: 160px; align-items: flex-end; padding-top: 8px; }
+.fbc-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; min-width: 0; }
+.fbc-bars { flex: 1; width: 100%; display: flex; gap: 3px; align-items: flex-end; justify-content: center; }
+.fbc-bar { width: 42%; max-width: 24px; border-radius: 5px 5px 2px 2px; transition: height 0.7s var(--ease-out); }
+.fbc-bar.in { background: linear-gradient(180deg, #10b981, #059669); }
+.fbc-bar.out { background: linear-gradient(180deg, #ef4444, #dc2626); }
+.fbc-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 6px; }
+
+.fin-user-list { display: flex; flex-direction: column; gap: 2px; }
+.fin-user-head { display: grid; grid-template-columns: 1fr 70px 70px 70px; gap: 6px; padding: 6px 10px; font-size: 10px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; }
+.fuh-num { text-align: right; }
+.fin-user-row { display: grid; grid-template-columns: 1fr 70px 70px 70px; gap: 6px; align-items: center; padding: 10px; border-radius: var(--radius-sm); transition: background 0.15s; }
+.fin-user-row:hover { background: var(--surface2); }
+.fur-user { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.fur-avatar { width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0; background: linear-gradient(135deg, var(--accent), #8b5cf6); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; }
+.fur-info { min-width: 0; }
+.fur-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fur-email { font-size: 10px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fur-num { text-align: right; font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.fur-num.in { color: #10b981; }
+.fur-num.out { color: #ef4444; }
+.fur-num.bal { color: var(--accent-light); }
+@media(max-width:480px){
+  .fin-user-head, .fin-user-row { grid-template-columns: 1fr 56px 56px; }
+  .fin-user-head span:nth-child(4), .fin-user-row .fur-num:nth-child(4) { display: none; }
+}
+
 /* ── Support (Yordam) admin ── */
 .support-admin { display: grid; grid-template-columns: 1fr; gap: 14px; }
 @media (min-width: 768px) { .support-admin { grid-template-columns: 300px 1fr; align-items: start; } }

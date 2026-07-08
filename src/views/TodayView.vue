@@ -94,6 +94,10 @@
 
     <!-- ── Quick links ── -->
     <div class="quick-links anim-fade-up stagger-1">
+      <router-link to="/finance" class="ql-btn">
+        <span class="ql-emoji">💵</span>
+        <span class="ql-text">Moliya</span>
+      </router-link>
       <router-link to="/leaderboard" class="ql-btn">
         <span class="ql-emoji">🏆</span>
         <span class="ql-text">Reyting</span>

@@ -172,12 +172,14 @@ const chevronRightIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="
 
 const trophyIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`
 const supportIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+const walletIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.8"/><path d="M16 12h.01M3 9h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`
 
 const navItems = [
   { path: '/today',       icon: boltIcon,     label: 'nav.today' },
   { path: '/calendar',    icon: calendarIcon, label: 'nav.calendar' },
   { path: '/alarm',       icon: alarmIcon,    label: 'nav.alarm' },
   { path: '/nutrition',   icon: utensilsIcon, label: 'nav.nutrition' },
+  { path: '/finance',     icon: walletIcon,   label: 'nav.finance' },
   { path: '/stats',       icon: barChartIcon, label: 'nav.stats' },
   { path: '/leaderboard', icon: trophyIcon,   label: 'nav.leaderboard' },
   { path: '/profile',     icon: userIcon,     label: 'nav.profile' },
