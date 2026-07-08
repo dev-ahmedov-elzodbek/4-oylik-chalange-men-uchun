@@ -1,6 +1,23 @@
 <template>
   <div class="auth-page">
 
+    <!-- Kirish loading overlay -->
+    <transition name="enter-fade">
+      <div v-if="entering" class="enter-overlay">
+        <div class="enter-logo">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3.5 16.5L9 11l3.2 2.8L20 6" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15.5 6H20v4.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="3" y="18.5" width="3.4" height="2.5" rx="1" fill="white" fill-opacity="0.55"/>
+            <rect x="10.3" y="18.5" width="3.4" height="2.5" rx="1" fill="white" fill-opacity="0.55"/>
+            <rect x="17.6" y="18.5" width="3.4" height="2.5" rx="1" fill="white" fill-opacity="0.55"/>
+          </svg>
+        </div>
+        <div class="enter-quote">"{{ enterQuote }}"</div>
+        <div class="enter-loader"><div class="enter-bar"></div></div>
+      </div>
+    </transition>
+
     <!-- Animated background -->
     <div class="auth-bg">
       <div class="ab-orb ab-orb1"></div>
@@ -198,6 +215,17 @@ const loading  = ref(false)
 const error    = ref('')
 const success  = ref('')
 
+// Kirish loading + rivojlanish iborasi
+const entering = ref(false)
+const enterQuotes = [
+  "Bugun o'zingizni yaxshiroq qilishga tayyorsiz",
+  "Har kuni 1% — yil oxirida 37× o'sish",
+  "Intizom bilan har qanday maqsad qo'lда",
+  "Kichik odatlar — katta o'zgarishlar",
+  "Rivojlanish sari yana bir qadam",
+]
+const enterQuote = ref('')
+
 const langs = [
   { code: 'uz', flag: '🇺🇿', label: "O'zbek" },
   { code: 'en', flag: '🇬🇧', label: 'English' },
@@ -250,18 +278,21 @@ async function submit() {
   success.value = ''
   if (!email.value || !password.value) return
   loading.value = true
+  enterQuote.value = enterQuotes[Math.floor(Math.random() * enterQuotes.length)]
+  entering.value = true
   try {
     if (mode.value === 'login') {
       await auth.login(email.value, password.value)
-      router.push('/today')
     } else {
       await auth.register(email.value, password.value, fullName.value)
       // Email tasdiqlash o'chirilgan — ro'yxatdan o'tgach darhol kiramiz
       await auth.login(email.value, password.value)
-      router.push('/today')
     }
+    // Iborani ko'rish uchun qisqa kutish, keyin kiramiz
+    setTimeout(() => router.push('/today'), 900)
   } catch (e) {
     error.value = e.message
+    entering.value = false
   } finally {
     loading.value = false
   }
@@ -292,6 +323,50 @@ const arrowRightIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="no
 </script>
 
 <style scoped>
+/* ── Kirish loading overlay ── */
+.enter-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  overflow: hidden;
+}
+.enter-overlay::before {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(108,99,255,0.18) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: orbFloat 8s ease-in-out infinite;
+}
+.enter-logo {
+  width: 88px; height: 88px; border-radius: 26px;
+  background: linear-gradient(135deg, var(--accent), #00d4aa);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 36px rgba(108,99,255,0.5);
+  animation: bounceIn 0.5s var(--ease-spring), glow 2s ease 0.5s infinite;
+  position: relative; z-index: 1;
+}
+.enter-quote {
+  font-size: 15px; font-style: italic; color: var(--text);
+  max-width: 320px; text-align: center; padding: 0 24px; line-height: 1.6;
+  animation: fadeUp 0.5s var(--ease-out) 0.2s both;
+  position: relative; z-index: 1;
+}
+.enter-loader {
+  width: 150px; height: 3px; background: var(--surface3);
+  border-radius: 10px; overflow: hidden; position: relative; z-index: 1;
+}
+.enter-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2), #8b5cf6);
+  background-size: 200% 100%;
+  border-radius: 10px;
+  animation: loading 1.5s ease infinite, shimmer 2s linear infinite;
+}
+.enter-fade-enter-active { transition: opacity 0.3s; }
+.enter-fade-leave-active { transition: opacity 0.4s; }
+.enter-fade-enter-from, .enter-fade-leave-to { opacity: 0; }
+
 /* ── Page layout ── */
 .auth-page {
   min-height: 100vh;

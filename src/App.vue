@@ -3,9 +3,17 @@
 
     <!-- Splash screen -->
     <div v-if="auth.loading" class="splash">
-      <div class="splash-logo">GF</div>
+      <div class="splash-logo">
+        <svg width="46" height="46" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3.5 16.5L9 11l3.2 2.8L20 6" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M15.5 6H20v4.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="3" y="18.5" width="3.4" height="2.5" rx="1" fill="white" fill-opacity="0.55"/>
+          <rect x="10.3" y="18.5" width="3.4" height="2.5" rx="1" fill="white" fill-opacity="0.55"/>
+          <rect x="17.6" y="18.5" width="3.4" height="2.5" rx="1" fill="white" fill-opacity="0.55"/>
+        </svg>
+      </div>
       <div class="splash-name">GoalFlow</div>
-      <div class="splash-sub">Har kuni 1% yaxshilan</div>
+      <div class="splash-quote">"{{ splashQuote }}"</div>
       <div class="splash-loader"><div class="loader-bar"></div></div>
     </div>
 
@@ -64,6 +72,19 @@ import { initAccent } from './utils/theme.js'
 
 const auth = useAuthStore()
 const route = useRoute()
+
+// Rivojlanish iboralari — yuklanishda ko'rsatiladi
+const splashQuotes = [
+  "Har kuni 1% yaxshilan — yil oxirida 37× o'sasan",
+  "Kichik qadamlar katta natijalarga olib keladi",
+  "Intizom — ozodlik sari yo'l",
+  "Bugungi harakating — ertangi natijang",
+  "O'zingni engsang, dunyoni engasan",
+  "Rivojlanish qulaylik zonasidan tashqarida boshlanadi",
+  "Muvaffaqiyat — kunlik odatlar yig'indisi",
+  "Bir foizli o'sish — abadiy ustunlik",
+]
+const splashQuote = splashQuotes[Math.floor(Math.random() * splashQuotes.length)]
 
 // Saqlangan accent rangni darhol qo'llash
 initAccent()
