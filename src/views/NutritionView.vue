@@ -97,6 +97,7 @@
             </button>
           </div>
           <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onFileChange" />
+          <div v-if="camHint" class="cam-hint">📷 {{ camHint }}</div>
           <button v-if="previewImg && !aiLoading" class="btn btn-primary" style="width:100%;margin-top:8px" @click="analyzeImage">
             🔍 AI bilan tahlil qilish
           </button>
@@ -235,6 +236,7 @@ function onDrop(e) { const f = e.dataTransfer.files[0]; if (f) processFile(f) }
 const cameraOn = ref(false)
 const videoEl = ref(null)
 const cameraErr = ref('')
+const camHint = ref('')
 const canFlip = ref(false)
 let stream = null
 let facing = 'environment'
@@ -242,7 +244,7 @@ let facing = 'environment'
 function camErrorText(e) {
   const name = e?.name || ''
   if (name === 'NotAllowedError' || name === 'SecurityError')
-    return "Kameraga ruxsat berilmagan. Brauzer sozlamalari → Kamera → ruxsat bering."
+    return "Kamera bloklangan. Manzil yonidagi 🔒 belgini bosing → Kamera → Ruxsat bering. Yoki hozircha Galereyadan tanlang."
   if (name === 'NotFoundError' || name === 'DevicesNotFoundError')
     return "Kamera topilmadi. Galereyadan rasm tanlang."
   if (name === 'NotReadableError' || name === 'TrackStartError')
@@ -276,10 +278,11 @@ async function attachStream() {
 
 async function openCamera() {
   cameraErr.value = ''
+  camHint.value = ''
   if (!navigator.mediaDevices?.getUserMedia) {
-    // Eski/webview brauzer — capture bilan fayl tanlash
-    fileInput.value?.setAttribute('capture', 'environment')
-    fileInput.value?.click()
+    // Eski/webview brauzer — to'g'ridan galereya
+    camHint.value = "Bu brauzer jonli kamerani qo'llab-quvvatlamaydi. Galereyadan tanlang."
+    triggerGallery()
     return
   }
   // MUHIM: getUserMedia'ni tugma bosilgan zahoti (gesture ichida) chaqiramiz — iOS uchun
@@ -287,11 +290,10 @@ async function openCamera() {
     if (stream) stream.getTracks().forEach(t => t.stop())
     stream = await getStream()
   } catch (e) {
-    // Modal ochilmaydi, o'rniga galereya taklif qilamiz
-    cameraErr.value = camErrorText(e)
+    // Kamera bloklangan/ochilmadi — galereyaga o'tamiz
     console.error('camera error:', e)
-    fileInput.value?.setAttribute('capture', 'environment')
-    fileInput.value?.click()
+    camHint.value = camErrorText(e)
+    triggerGallery()
     return
   }
   cameraOn.value = true
@@ -522,6 +524,7 @@ onUnmounted(() => { if (stream) stream.getTracks().forEach(t => t.stop()) })
 }
 .ai-action-btn:hover { border-color: var(--accent); background: rgba(108,99,255,0.06); transform: translateY(-2px); }
 .ai-action-icon { font-size: 30px; }
+.cam-hint { margin-top: 8px; font-size: 12px; line-height: 1.5; color: var(--warning); background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); padding: 8px 10px; border-radius: 8px; }
 
 /* Jonli kamera */
 .camera-overlay {
