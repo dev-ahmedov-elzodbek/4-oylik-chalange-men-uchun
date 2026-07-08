@@ -288,8 +288,8 @@ async function submit() {
       // Email tasdiqlash o'chirilgan — ro'yxatdan o'tgach darhol kiramiz
       await auth.login(email.value, password.value)
     }
-    // Iborani ko'rish uchun qisqa kutish, keyin kiramiz
-    setTimeout(() => router.push('/today'), 900)
+    // Iborani ko'rish uchun kutish, keyin kiramiz
+    setTimeout(() => router.push('/today'), 4000)
   } catch (e) {
     error.value = e.message
     entering.value = false

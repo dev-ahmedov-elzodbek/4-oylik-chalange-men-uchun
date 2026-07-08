@@ -2,7 +2,7 @@
   <div class="app-wrap" :data-theme="theme">
 
     <!-- Splash screen -->
-    <div v-if="auth.loading" class="splash">
+    <div v-if="auth.loading || minSplash" class="splash">
       <div class="splash-logo">
         <svg width="46" height="46" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3.5 16.5L9 11l3.2 2.8L20 6" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -85,6 +85,10 @@ const splashQuotes = [
   "Bir foizli o'sish — abadiy ustunlik",
 ]
 const splashQuote = splashQuotes[Math.floor(Math.random() * splashQuotes.length)]
+
+// Splash kamida 3.5 soniya ko'rinsin (ma'lumot tez kelsa ham)
+const minSplash = ref(true)
+setTimeout(() => { minSplash.value = false }, 3500)
 
 // Saqlangan accent rangni darhol qo'llash
 initAccent()
