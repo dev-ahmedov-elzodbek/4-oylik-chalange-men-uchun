@@ -50,7 +50,8 @@
             <span class="sel-check" :class="{ checked: tasks.isCompleted(task.id, dateStr(selectedDay)) }">
               {{ tasks.isCompleted(task.id, dateStr(selectedDay)) ? '✓' : '' }}
             </span>
-            <span class="sel-task-name">{{ task.icon }} {{ task.title }}</span>
+            <span class="sel-task-ic" v-html="getTaskIcon(task.icon, task.category)"></span>
+            <span class="sel-task-name">{{ task.title }}</span>
           </div>
           <div v-if="!tasks.tasks?.length" class="empty-state">Vazifalar yo'q</div>
         </div>
@@ -65,9 +66,22 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTasksStore } from '../stores/tasks.js'
+import { icons } from '../icons.js'
 
 const { t } = useI18n()
 const tasks = useTasksStore()
+
+// Icon kaliti → SVG
+function catIcon(c) {
+  return { study: icons.book, sport: icons.dumbbell, language: icons.globe,
+    self: icons.star, nutrition: icons.salad, custom: icons.pencil }[c] || icons['check-task']
+}
+function getTaskIcon(icon, cat) {
+  if (!icon || icon === '') return catIcon(cat)
+  if (icons[icon]) return icons[icon]
+  if (typeof icon === 'string' && icon.trim().startsWith('<svg')) return icon
+  return `<span style="font-size:14px">${icon}</span>`
+}
 
 const today = new Date()
 const currentMonth = ref(today.getMonth())
@@ -216,7 +230,14 @@ onMounted(async () => {
   transition: all 0.2s var(--ease-spring);
 }
 .sel-check.checked { background: var(--accent); border-color: var(--accent); }
-.sel-task-name { flex: 1; }
+.sel-task-ic {
+  width: 28px; height: 28px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(108,99,255,0.12); color: var(--accent-light);
+  border-radius: 8px;
+}
+.sel-task-ic :deep(svg) { width: 15px; height: 15px; }
+.sel-task-name { flex: 1; color: var(--text); font-weight: 500; }
 
 /* ── Transitions ── */
 .panel-slide-enter-active { animation: panelSlide 0.3s var(--ease-out); }

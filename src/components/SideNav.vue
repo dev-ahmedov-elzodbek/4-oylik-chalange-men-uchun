@@ -3,9 +3,12 @@
     <!-- Logo -->
     <div class="sn-logo" @click="$router.push('/today')">
       <div class="sn-logo-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="white" fill-opacity="0.3"/>
-          <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3.5 16.5L9 11l3.2 2.8L20 6" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M15.5 6H20v4.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="3" y="18.5" width="3.4" height="2.5" rx="1" fill="white" fill-opacity="0.55"/>
+          <rect x="10.3" y="18.5" width="3.4" height="2.5" rx="1" fill="white" fill-opacity="0.55"/>
+          <rect x="17.6" y="18.5" width="3.4" height="2.5" rx="1" fill="white" fill-opacity="0.55"/>
         </svg>
       </div>
       <transition name="sn-fade">
