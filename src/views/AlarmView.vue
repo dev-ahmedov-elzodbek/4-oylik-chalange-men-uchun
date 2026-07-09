@@ -189,7 +189,7 @@ async function uploadSound(e) {
   const file = e.target.files?.[0]
   if (!file) return
   uploadErr.value = ''
-  if (file.size > 5 * 1024 * 1024) { uploadErr.value = "Fayl 5MB dan katta bo'lmasin"; return }
+  if (file.size > 10 * 1024 * 1024) { uploadErr.value = "Fayl 10MB dan katta bo'lmasin"; return }
   uploading.value = true
   try {
     const ext = file.name.split('.').pop()
