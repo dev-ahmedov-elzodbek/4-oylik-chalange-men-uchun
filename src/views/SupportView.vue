@@ -54,8 +54,10 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from '../supabase.js'
 import { useAuthStore } from '../stores/auth.js'
+import { useSupportStore } from '../stores/support.js'
 
 const auth = useAuthStore()
+const supportStore = useSupportStore()
 const messages = ref([])
 const draft = ref('')
 const loading = ref(true)
@@ -91,6 +93,7 @@ async function load() {
     .eq('user_id', auth.user.id)
     .eq('sender', 'admin')
     .eq('is_read', false)
+  supportStore.refresh()  // badge tozalansin
 }
 
 async function send() {
@@ -125,6 +128,7 @@ async function poll() {
       // Admin javoblarini o'qilgan deb belgilash
       await supabase.from('support_messages').update({ is_read: true })
         .eq('user_id', auth.user.id).eq('sender', 'admin').eq('is_read', false)
+      supportStore.refresh()  // badge tozalansin
     }
   }
 }

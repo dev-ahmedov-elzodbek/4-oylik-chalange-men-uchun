@@ -69,9 +69,23 @@ import BottomNav from './components/BottomNav.vue'
 import SideNav from './components/SideNav.vue'
 import { startReminders } from './utils/reminders.js'
 import { initAccent } from './utils/theme.js'
+import { useSupportStore } from './stores/support.js'
 
 const auth = useAuthStore()
 const route = useRoute()
+const support = useSupportStore()
+
+// Login holatiga qarab support bildirishnoma pollerni boshqarish
+watch(() => auth.isLoggedIn, (v) => {
+  if (v) {
+    support.start()
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+  } else {
+    support.stop()
+  }
+}, { immediate: true })
 
 // Rivojlanish iboralari — yuklanishda ko'rsatiladi
 const splashQuotes = [

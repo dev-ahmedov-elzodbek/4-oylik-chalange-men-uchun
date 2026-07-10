@@ -47,6 +47,7 @@
         <transition name="sn-fade">
           <span v-if="!collapsed" class="sn-label">Yordam</span>
         </transition>
+        <span v-if="support.userUnread > 0" class="sn-msg-badge">{{ support.userUnread }}</span>
       </router-link>
 
       <!-- Subscription / Pro upgrade -->
@@ -124,6 +125,7 @@
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth.js'
+import { useSupportStore } from '../stores/support.js'
 import { supabase } from '../supabase.js'
 
 const props = defineProps(['theme', 'collapsed'])
@@ -131,6 +133,7 @@ defineEmits(['toggle-theme', 'toggle-collapse'])
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const support = useSupportStore()
 
 // ── O'qilmagan support xabarlar (admin uchun) ──
 const supportUnread = ref(0)
@@ -324,6 +327,15 @@ const navItems = [
   padding: 2px 8px; border-radius: 10px;
   background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(108,99,255,0.1));
   color: var(--accent-light);
+  animation: badge-pop 0.4s var(--ease-spring);
+}
+.sn-msg-badge {
+  margin-left: auto; flex-shrink: 0;
+  min-width: 20px; height: 20px; padding: 0 6px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--danger); color: white;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  border-radius: 10px;
   animation: badge-pop 0.4s var(--ease-spring);
 }
 

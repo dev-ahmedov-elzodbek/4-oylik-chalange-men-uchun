@@ -137,7 +137,10 @@
 
         <router-link to="/support" class="setting-link">
           <span>💬 Yordam va qo'llab-quvvatlash</span>
-          <span class="setting-arrow">›</span>
+          <span class="setting-right">
+            <span v-if="support.userUnread > 0" class="setting-msg-badge">{{ support.userUnread }}</span>
+            <span class="setting-arrow">›</span>
+          </span>
         </router-link>
         <router-link v-if="!auth.isPro" to="/subscription" class="setting-link pro-link">
           <span>👑 Pro rejaga o'tish</span>
@@ -236,10 +239,12 @@ import { ACCENTS, currentAccent, setAccent } from '../utils/theme.js'
 import { supabase } from '../supabase.js'
 import { onMounted } from 'vue'
 import ProUpsell from '../components/ProUpsell.vue'
+import { useSupportStore } from '../stores/support.js'
 
 const { t, locale } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
+const support = useSupportStore()
 
 // ── Referral (do'st taklif) ──
 const referral = ref({ code: '', invited_count: 0, was_referred: false })
@@ -594,6 +599,8 @@ async function logout() {
 }
 .setting-link:hover { background: var(--surface2); }
 .setting-arrow { color: var(--text-dim); font-size: 20px; }
+.setting-right { display: inline-flex; align-items: center; gap: 8px; }
+.setting-msg-badge { min-width: 20px; height: 20px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; background: var(--danger); color: white; font-family: var(--font-mono); font-size: 11px; font-weight: 700; border-radius: 10px; }
 .pro-link { color: #f59e0b; font-weight: 600; }
 .mini-pro { font-size: 9px; font-weight: 800; color: #f59e0b; background: rgba(245,158,11,0.15); padding: 1px 6px; border-radius: 6px; margin-left: 4px; vertical-align: middle; }
 
