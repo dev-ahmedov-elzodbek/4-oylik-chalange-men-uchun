@@ -193,12 +193,13 @@
         <!-- Suhbatlar ro'yxati -->
         <div class="card sa-threads" :class="{ 'has-active': activeThread }">
           <div class="card-title">💬 Suhbatlar <span v-if="totalUnread" class="sa-unread-total">{{ totalUnread }}</span></div>
+          <input v-model="supportSearch" class="search-input" placeholder="🔍 Barcha userlarni qidirish (taklif yuborish)" style="margin-bottom:10px" />
           <div class="sa-thread-list">
             <div
-              v-for="th in threads"
+              v-for="th in supportThreads"
               :key="th.user_id"
               class="sa-thread"
-              :class="{ active: activeThread?.user_id === th.user_id }"
+              :class="{ active: activeThread?.user_id === th.user_id, 'is-new': th.isNew }"
               @click="openThread(th)"
             >
               <div class="sa-thread-avatar">{{ (th.display_name || 'U')[0].toUpperCase() }}</div>
@@ -207,8 +208,11 @@
                 <div class="sa-thread-last">{{ th.last_message }}</div>
               </div>
               <div v-if="Number(th.unread) > 0" class="sa-thread-badge">{{ th.unread }}</div>
+              <div v-else-if="th.isNew" class="sa-thread-new">+</div>
             </div>
-            <div v-if="!threads.length" class="empty-state">Hali suhbat yo'q</div>
+            <div v-if="!supportThreads.length" class="empty-state">
+              {{ supportSearch ? 'Foydalanuvchi topilmadi' : 'Hali suhbat yo\'q — qidiruvdan user tanlab taklif yuboring' }}
+            </div>
           </div>
         </div>
 
@@ -619,6 +623,25 @@ let supportChannel = null
 let supportPollTimer = null
 
 const totalUnread = computed(() => threads.value.reduce((s, t) => s + Number(t.unread || 0), 0))
+
+// Barcha userlarni qidirish — istalgan userga birinchi xabar yuborish
+const supportSearch = ref('')
+const supportThreads = computed(() => {
+  const q = supportSearch.value.trim().toLowerCase()
+  if (!q) return threads.value
+  const map = {}
+  threads.value.forEach(t => { map[t.user_id] = t })
+  return users.value
+    .filter(u => (u.full_name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q))
+    .map(u => map[u.id] || {
+      user_id: u.id,
+      display_name: u.full_name || 'Foydalanuvchi',
+      email: u.email,
+      last_message: 'Yangi suhbat — taklif yuboring',
+      unread: 0,
+      isNew: true,
+    })
+})
 
 async function loadThreads() {
   const { data } = await supabase.rpc('get_support_threads')
@@ -1046,6 +1069,9 @@ onUnmounted(() => {
 .sa-thread-name { font-size: 14px; font-weight: 600; }
 .sa-thread-last { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sa-thread-badge { background: var(--danger); color: white; font-size: 11px; font-family: var(--font-mono); font-weight: 700; padding: 1px 7px; border-radius: 10px; flex-shrink: 0; }
+.sa-thread.is-new { border: 1px dashed rgba(108,99,255,0.3); }
+.sa-thread.is-new .sa-thread-last { color: var(--accent-light); font-style: italic; }
+.sa-thread-new { width: 22px; height: 22px; border-radius: 7px; background: rgba(108,99,255,0.15); color: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; flex-shrink: 0; }
 
 .sa-chat { display: flex; flex-direction: column; height: 62vh; min-height: 400px; padding: 0; overflow: hidden; }
 .sa-chat-head {
