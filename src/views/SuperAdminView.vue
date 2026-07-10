@@ -235,6 +235,7 @@
                 :class="m.sender === 'admin' ? 'from-admin' : 'from-user'"
               >
                 <div class="sa-bubble">
+                  <div class="sa-sender">{{ m.sender === 'admin' ? 'Siz (admin)' : activeThread.display_name }}</div>
                   <div class="sa-text">{{ m.message }}</div>
                   <div class="sa-time">{{ new Date(m.created_at).toLocaleTimeString('uz', {hour:'2-digit',minute:'2-digit'}) }}</div>
                 </div>
@@ -1094,6 +1095,8 @@ onUnmounted(() => {
 .sa-bubble { padding: 9px 13px; border-radius: 14px; }
 .from-admin .sa-bubble { background: linear-gradient(135deg, var(--accent), #8b5cf6); color: white; border-bottom-right-radius: 4px; }
 .from-user .sa-bubble { background: var(--surface3); color: var(--text); border-bottom-left-radius: 4px; }
+.sa-sender { font-size: 10px; font-weight: 700; opacity: 0.7; margin-bottom: 3px; }
+.from-admin .sa-sender { text-align: right; }
 .sa-text { font-size: 14px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
 .sa-time { font-size: 10px; opacity: 0.6; margin-top: 3px; text-align: right; font-family: var(--font-mono); }
 .sa-input-row { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); background: var(--surface2); }
